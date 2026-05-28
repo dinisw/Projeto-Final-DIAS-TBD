@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.dias.navios.ui.controller.TripulanteController"
+      spacing="10" style="-fx-padding: 15;">
+
+    <Label text="Gestao de Tripulacao" style="-fx-font-size: 16; -fx-font-weight: bold;"/>
+
+    <TableView fx:id="tabelaTripulantes" prefHeight="250">
+        <columns>
+            <TableColumn text="Nome"          prefWidth="200"/>
+            <TableColumn text="Funcao"        prefWidth="120"/>
+            <TableColumn text="Certificado"   prefWidth="150"/>
+            <TableColumn text="Disponivel"    prefWidth="100"/>
+        </columns>
+    </TableView>
+
+    <GridPane hgap="10" vgap="8">
+        <Label text="Nome:"                        GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+        <TextField fx:id="campoNome"               GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+        <Label text="Num. Certificado:"            GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+        <TextField fx:id="campoCertificado"        GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+        <Label text="Funcao:"                      GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+        <ComboBox fx:id="comboFuncao"              GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+
+        <Label text="Disponivel:"                  GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+        <CheckBox fx:id="checkDisponivel"          GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+
+        <Label text="Nacionalidade:"               GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+        <TextField fx:id="campoNacionalidade"      GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+    </GridPane>
+
+    <HBox spacing="10">
+        <Button text="Guardar" onAction="#guardarTripulante"/>
+        <Button text="Apagar"  onAction="#apagarTripulante"/>
+    </HBox>
+
+    <Label fx:id="labelMensagem" style="-fx-text-fill: red;"/>
+
+</VBox>

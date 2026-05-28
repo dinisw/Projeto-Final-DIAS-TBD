@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.dias.navios.ui.controller.CargaController"
+      spacing="10" style="-fx-padding: 15;">
+
+    <Label text="Gestao de Cargas" style="-fx-font-size: 16; -fx-font-weight: bold;"/>
+
+    <TableView fx:id="tabelaCargas" prefHeight="250">
+        <columns>
+            <TableColumn text="Designacao"  prefWidth="200"/>
+            <TableColumn text="Tipo"        prefWidth="150"/>
+            <TableColumn text="Volume (m3)" prefWidth="100"/>
+            <TableColumn text="Peso (ton)"  prefWidth="100"/>
+        </columns>
+    </TableView>
+
+    <GridPane hgap="10" vgap="8">
+        <Label text="Designacao:"              GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+        <TextField fx:id="campoDesignacao"     GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+        <Label text="Tipo:"                    GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+        <ComboBox fx:id="comboTipo"            GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+        <Label text="Volume (m3):"             GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+        <TextField fx:id="campoVolume"         GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+
+        <Label text="Peso (ton):"              GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+        <TextField fx:id="campoPeso"           GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+
+        <Label text="Inflamavel:"              GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+        <CheckBox fx:id="checkInflamavel"      GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+
+        <Label text="Corrosiva:"               GridPane.rowIndex="5" GridPane.columnIndex="0"/>
+        <CheckBox fx:id="checkCorrosiva"       GridPane.rowIndex="5" GridPane.columnIndex="1"/>
+
+        <Label text="Toxica:"                  GridPane.rowIndex="6" GridPane.columnIndex="0"/>
+        <CheckBox fx:id="checkToxica"          GridPane.rowIndex="6" GridPane.columnIndex="1"/>
+    </GridPane>
+
+    <HBox spacing="10">
+        <Button text="Guardar" onAction="#guardarCarga"/>
+        <Button text="Apagar"  onAction="#apagarCarga"/>
+    </HBox>
+
+    <Label fx:id="labelMensagem" style="-fx-text-fill: red;"/>
+
+</VBox>

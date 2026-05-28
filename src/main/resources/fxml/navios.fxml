@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.dias.navios.ui.controller.NavioController"
+      spacing="10" style="-fx-padding: 15;">
+
+    <Label text="Gestao de Navios" style="-fx-font-size: 16; -fx-font-weight: bold;"/>
+
+    <!-- Tabela de navios -->
+    <TableView fx:id="tabelaNavios" prefHeight="250">
+        <columns>
+            <TableColumn fx:id="colNome"   text="Nome"    prefWidth="180"/>
+            <TableColumn fx:id="colIMO"    text="IMO"     prefWidth="120"/>
+            <TableColumn fx:id="colTipo"   text="Tipo"    prefWidth="140"/>
+            <TableColumn fx:id="colEstado" text="Estado"  prefWidth="120"/>
+        </columns>
+    </TableView>
+
+    <!-- Formulario de insercao/edicao -->
+    <GridPane hgap="10" vgap="8">
+        <Label text="Nome:"          GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+        <TextField fx:id="campoNome" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+        <Label text="Codigo IMO:"    GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+        <TextField fx:id="campoIMO"  GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+        <Label text="Tipo:"                    GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+        <ComboBox fx:id="comboTipo"            GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+
+        <Label text="Capacidade (ton):"           GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+        <TextField fx:id="campoCapacidade"        GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+
+        <Label text="Num. Tanques:"              GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+        <TextField fx:id="campoTanques"          GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+
+        <Label text="Bandeira:"                  GridPane.rowIndex="5" GridPane.columnIndex="0"/>
+        <TextField fx:id="campoBandeira"         GridPane.rowIndex="5" GridPane.columnIndex="1"/>
+
+        <Label text="Ano Fabrico:"               GridPane.rowIndex="6" GridPane.columnIndex="0"/>
+        <TextField fx:id="campoAno"              GridPane.rowIndex="6" GridPane.columnIndex="1"/>
+
+        <Label text="Estado:"                    GridPane.rowIndex="7" GridPane.columnIndex="0"/>
+        <ComboBox fx:id="comboEstado"            GridPane.rowIndex="7" GridPane.columnIndex="1"/>
+    </GridPane>
+
+    <HBox spacing="10">
+        <Button text="Guardar"  onAction="#guardarNavio"/>
+        <Button text="Apagar"   onAction="#apagarNavio"/>
+    </HBox>
+
+    <Label fx:id="labelMensagem" style="-fx-text-fill: red;"/>
+
+</VBox>
