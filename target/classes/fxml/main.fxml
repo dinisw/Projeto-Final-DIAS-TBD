@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.dias.navios.ui.controller.MainController"
+            fx:id="rootPane">
+
+    <top>
+        <MenuBar>
+            <menus>
+                <Menu text="Navios">
+                    <items>
+                        <MenuItem text="Gerir Navios" onAction="#abrirNavios"/>
+                    </items>
+                </Menu>
+                <Menu text="Cargas">
+                    <items>
+                        <MenuItem text="Gerir Cargas" onAction="#abrirCargas"/>
+                    </items>
+                </Menu>
+                <Menu text="Viagens">
+                    <items>
+                        <MenuItem text="Gerir Viagens" onAction="#abrirViagens"/>
+                    </items>
+                </Menu>
+                <Menu text="Tripulacao">
+                    <items>
+                        <MenuItem text="Gerir Tripulacao" onAction="#abrirTripulacao"/>
+                    </items>
+                </Menu>
+            </menus>
+        </MenuBar>
+    </top>
+
+    <center>
+        <!-- O conteudo de cada modulo e carregado aqui -->
+        <Label text="Bem-vindo ao Sistema de Gestao de Navios Petroleiros"
+               style="-fx-font-size: 18; -fx-padding: 20;"/>
+    </center>
+
+</BorderPane>

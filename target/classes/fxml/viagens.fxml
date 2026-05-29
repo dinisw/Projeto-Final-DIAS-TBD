@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.dias.navios.ui.controller.ViagemController"
+      spacing="10" style="-fx-padding: 15;">
+
+    <Label text="Gestao de Viagens" style="-fx-font-size: 16; -fx-font-weight: bold;"/>
+
+    <TableView fx:id="tabelaViagens" prefHeight="250">
+        <columns>
+            <TableColumn text="ID"           prefWidth="60"/>
+            <TableColumn text="Navio"        prefWidth="150"/>
+            <TableColumn text="Origem"       prefWidth="130"/>
+            <TableColumn text="Destino"      prefWidth="130"/>
+            <TableColumn text="Estado"       prefWidth="100"/>
+            <TableColumn text="Partida"      prefWidth="100"/>
+        </columns>
+    </TableView>
+
+    <GridPane hgap="10" vgap="8">
+        <Label text="ID do Navio:"                 GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+        <TextField fx:id="campoNavioId"            GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+        <Label text="ID Porto de Origem:"          GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+        <TextField fx:id="campoPortoOrigemId"      GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+        <Label text="ID Porto de Destino:"         GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+        <TextField fx:id="campoPortoDestinoId"     GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+
+        <Label text="Data de Partida:"             GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+        <DatePicker fx:id="campoDataPartida"       GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+
+        <Label text="Data Chegada Prevista:"       GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+        <DatePicker fx:id="campoDataChegada"       GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+    </GridPane>
+
+    <HBox spacing="10">
+        <Button text="Criar Viagem"    onAction="#criarViagem"/>
+        <Button text="Avancar Estado"  onAction="#avancarEstado"/>
+        <Button text="Cancelar"        onAction="#cancelarViagem"/>
+    </HBox>
+
+    <Label fx:id="labelMensagem" style="-fx-text-fill: red;"/>
+
+</VBox>
