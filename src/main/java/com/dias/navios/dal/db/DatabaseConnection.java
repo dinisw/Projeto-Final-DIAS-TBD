@@ -1,4 +1,4 @@
-package com.dias.navios.dal;
+package com.dias.navios.dal.db;
 
 import java.io.FileInputStream;
 import java.sql.Connection;

@@ -1,5 +1,6 @@
 package com.dias.navios.dal;
 
+import com.dias.navios.dal.db.DatabaseConnection;
 import com.dias.navios.model.EstadoNavio;
 import com.dias.navios.model.Navio;
 import com.dias.navios.model.TipoNavio;
