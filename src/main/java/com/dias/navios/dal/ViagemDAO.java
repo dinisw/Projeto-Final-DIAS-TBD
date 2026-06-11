@@ -1,102 +1,67 @@
 package com.dias.navios.dal;
 
 import com.dias.navios.dal.db.DatabaseConnection;
+import com.dias.navios.dal.db.RowMapper;
 import com.dias.navios.model.EstadoViagem;
 import com.dias.navios.model.Viagem;
 
-import java.sql.*;
-import java.util.ArrayList;
+import java.sql.Date;
 import java.util.List;
 
 public class ViagemDAO {
 
+    private final DatabaseConnection db = new DatabaseConnection();
+
+    private final RowMapper<Viagem> mapper = rs -> {
+        Date partida = rs.getDate("data_partida");
+        Date chegada = rs.getDate("data_chegada_prevista");
+        return new Viagem(
+                rs.getInt("id"),
+                rs.getInt("porto_origem_id"),
+                rs.getInt("porto_destino_id"),
+                partida == null ? null : partida.toLocalDate(),
+                chegada == null ? null : chegada.toLocalDate(),
+                rs.getInt("navio_id"),
+                EstadoViagem.valueOf(rs.getString("estado"))
+        );
+    };
+
     public void inserir(Viagem viagem) throws Exception {
-        // TODO: implementar INSERT na tabela viagens
-        String sql = "INSERT INTO viagens (porto_origem_id, porto_destino_id, data_partida, data_chegada_prevista, navio_id, estado) VALUES (?, ?, ?, ?, ?, ?)";
-        Connection conn = DatabaseConnection.getConnection();
-        PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-        // TODO: preencher os parametros
-        ps.close();
+        String sql = "INSERT INTO viagens (porto_origem_id, porto_destino_id, data_partida, " +
+                "data_chegada_prevista, navio_id, estado) VALUES (?, ?, ?, ?, ?, ?)";
+        int id = db.create(sql,
+                viagem.getPortoOrigemId(),
+                viagem.getPortoDestinoId(),
+                viagem.getDataPartida() == null ? null : Date.valueOf(viagem.getDataPartida()),
+                viagem.getDataChegadaPrevista() == null ? null : Date.valueOf(viagem.getDataChegadaPrevista()),
+                viagem.getNavioId(),
+                viagem.getEstado() == null ? null : viagem.getEstado().name());
+        if (id > 0) viagem.setId(id);
     }
 
     public void atualizarEstado(int id, EstadoViagem estado) throws Exception {
-        // TODO: atualizar apenas o estado da viagem
-        String sql = "UPDATE viagens SET estado=? WHERE id=?";
-        Connection conn = DatabaseConnection.getConnection();
-        PreparedStatement ps = conn.prepareStatement(sql);
-        ps.setString(1, estado.name());
-        ps.setInt(2, id);
-        ps.executeUpdate();
-        ps.close();
+        db.execute("UPDATE viagens SET estado=? WHERE id=?", estado.name(), id);
     }
 
     public void apagar(int id) throws Exception {
-        // TODO: implementar DELETE na tabela viagens
-        String sql = "DELETE FROM viagens WHERE id=?";
-        Connection conn = DatabaseConnection.getConnection();
-        PreparedStatement ps = conn.prepareStatement(sql);
-        ps.setInt(1, id);
-        ps.executeUpdate();
-        ps.close();
+        db.execute("DELETE FROM viagens WHERE id=?", id);
     }
 
     public Viagem buscarPorId(int id) throws Exception {
-        // TODO: implementar SELECT por id
-        String sql = "SELECT * FROM viagens WHERE id=?";
-        Connection conn = DatabaseConnection.getConnection();
-        PreparedStatement ps = conn.prepareStatement(sql);
-        ps.setInt(1, id);
-        ResultSet rs = ps.executeQuery();
-        Viagem viagem = null;
-        if (rs.next()) {
-            viagem = mapearResultSet(rs);
-        }
-        rs.close();
-        ps.close();
-        return viagem;
+        List<Viagem> resultado = db.select("SELECT * FROM viagens WHERE id=?", mapper, id);
+        return resultado.isEmpty() ? null : resultado.get(0);
     }
 
     public List<Viagem> listarTodos() throws Exception {
-        // TODO: implementar SELECT de todas as viagens
-        List<Viagem> lista = new ArrayList<>();
-        String sql = "SELECT * FROM viagens";
-        Connection conn = DatabaseConnection.getConnection();
-        Statement st = conn.createStatement();
-        ResultSet rs = st.executeQuery(sql);
-        while (rs.next()) {
-            lista.add(mapearResultSet(rs));
-        }
-        rs.close();
-        st.close();
-        return lista;
+        return db.select("SELECT * FROM viagens", mapper);
     }
 
+    /** Regra de negocio: um navio so pode ter uma viagem em curso de cada vez. */
     public boolean navioTemViagemAtiva(int navioId) throws Exception {
-        // Regra de negocio: um navio so pode ter uma viagem ativa de cada vez
-        String sql = "SELECT COUNT(*) FROM viagens WHERE navio_id=? AND estado='EM_CURSO'";
-        Connection conn = DatabaseConnection.getConnection();
-        PreparedStatement ps = conn.prepareStatement(sql);
-        ps.setInt(1, navioId);
-        ResultSet rs = ps.executeQuery();
-        boolean temViagem = false;
-        if (rs.next()) {
-            temViagem = rs.getInt(1) > 0;
-        }
-        rs.close();
-        ps.close();
-        return temViagem;
-    }
-
-    private Viagem mapearResultSet(ResultSet rs) throws SQLException {
-        // TODO: converter linha do ResultSet num objeto Viagem
-        Viagem v = new Viagem();
-        v.setId(rs.getInt("id"));
-        v.setPortoOrigemId(rs.getInt("porto_origem_id"));
-        v.setPortoDestinoId(rs.getInt("porto_destino_id"));
-        v.setDataPartida(rs.getDate("data_partida").toLocalDate());
-        v.setDataChegadaPrevista(rs.getDate("data_chegada_prevista").toLocalDate());
-        v.setNavioId(rs.getInt("navio_id"));
-        v.setEstado(EstadoViagem.valueOf(rs.getString("estado")));
-        return v;
+        List<Integer> total = db.select(
+                "SELECT COUNT(*) AS total FROM viagens WHERE navio_id=? AND estado='EM_CURSO'",
+                rs -> rs.getInt("total"),
+                navioId);
+        return !total.isEmpty() && total.get(0) > 0;
     }
 }

@@ -17,6 +17,11 @@ public class ViagemService {
     public void criarViagem(Viagem viagem) throws Exception {
         Navio navio = navioDAO.buscarPorId(viagem.getNavioId());
 
+        // Regra: o navio tem de existir (evita NullPointerException)
+        if (navio == null) {
+            throw new IllegalArgumentException("Selecione um navio valido para a viagem.");
+        }
+
         // Regra: navio deve estar ATIVO
         if (navio.getEstado() != EstadoNavio.ATIVO) {
             throw new IllegalStateException("O navio nao esta ativo e nao pode iniciar uma viagem.");

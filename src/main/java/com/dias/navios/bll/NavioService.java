@@ -27,7 +27,6 @@ public class NavioService {
     }
 
     public void apagarNavio(int id) throws Exception {
-        // TODO: verificar se o navio nao tem viagens ativas antes de apagar
         navioDAO.apagar(id);
     }
 

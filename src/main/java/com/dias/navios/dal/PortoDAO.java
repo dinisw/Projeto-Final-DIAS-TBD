@@ -1,60 +1,46 @@
 package com.dias.navios.dal;
 
 import com.dias.navios.dal.db.DatabaseConnection;
+import com.dias.navios.dal.db.RowMapper;
 import com.dias.navios.model.Porto;
 
-import java.sql.*;
-import java.util.ArrayList;
 import java.util.List;
 
 public class PortoDAO {
 
+    private final DatabaseConnection db = new DatabaseConnection();
+
+    private final RowMapper<Porto> mapper = rs -> new Porto(
+            rs.getInt("id"),
+            rs.getString("nome"),
+            rs.getString("pais"),
+            rs.getString("codigo")
+    );
+
     public void inserir(Porto porto) throws Exception {
-        // TODO: implementar INSERT na tabela portos
         String sql = "INSERT INTO portos (nome, pais, codigo) VALUES (?, ?, ?)";
-        Connection conn = DatabaseConnection.getConnection();
-        PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-        // TODO: preencher os parametros
-        ps.close();
+        int id = db.create(sql,
+                porto.getNome(),
+                porto.getPais(),
+                porto.getCodigo());
+        if (id > 0) porto.setId(id);
+    }
+
+    public void atualizar(Porto porto) throws Exception {
+        db.execute("UPDATE portos SET nome=?, pais=?, codigo=? WHERE id=?",
+                porto.getNome(), porto.getPais(), porto.getCodigo(), porto.getId());
+    }
+
+    public void apagar(int id) throws Exception {
+        db.execute("DELETE FROM portos WHERE id=?", id);
     }
 
     public Porto buscarPorId(int id) throws Exception {
-        // TODO: implementar SELECT por id
-        String sql = "SELECT * FROM portos WHERE id=?";
-        Connection conn = DatabaseConnection.getConnection();
-        PreparedStatement ps = conn.prepareStatement(sql);
-        ps.setInt(1, id);
-        ResultSet rs = ps.executeQuery();
-        Porto porto = null;
-        if (rs.next()) {
-            porto = mapearResultSet(rs);
-        }
-        rs.close();
-        ps.close();
-        return porto;
+        List<Porto> resultado = db.select("SELECT * FROM portos WHERE id=?", mapper, id);
+        return resultado.isEmpty() ? null : resultado.get(0);
     }
 
     public List<Porto> listarTodos() throws Exception {
-        // TODO: implementar SELECT de todos os portos
-        List<Porto> lista = new ArrayList<>();
-        String sql = "SELECT * FROM portos";
-        Connection conn = DatabaseConnection.getConnection();
-        Statement st = conn.createStatement();
-        ResultSet rs = st.executeQuery(sql);
-        while (rs.next()) {
-            lista.add(mapearResultSet(rs));
-        }
-        rs.close();
-        st.close();
-        return lista;
-    }
-
-    private Porto mapearResultSet(ResultSet rs) throws SQLException {
-        Porto porto = new Porto();
-        porto.setId(rs.getInt("id"));
-        porto.setNome(rs.getString("nome"));
-        porto.setPais(rs.getString("pais"));
-        porto.setCodigo(rs.getString("codigo"));
-        return porto;
+        return db.select("SELECT * FROM portos", mapper);
     }
 }
