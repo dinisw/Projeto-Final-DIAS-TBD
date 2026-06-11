@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.text.Font?>
+
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.dias.navios.ui.controller.TripulanteController"
+      spacing="12">
+    <padding><Insets top="16" right="16" bottom="16" left="16"/></padding>
+
+    <Label text="Gestao de Tripulacao">
+        <font><Font size="16.0"/></font>
+    </Label>
+
+    <TableView fx:id="tabela" VBox.vgrow="ALWAYS">
+        <columns>
+            <TableColumn fx:id="colNome"          text="Nome"          prefWidth="180"/>
+            <TableColumn fx:id="colCertificado"   text="Certificado"   prefWidth="130"/>
+            <TableColumn fx:id="colFuncao"        text="Funcao"        prefWidth="120"/>
+            <TableColumn fx:id="colDisponivel"    text="Disponivel"    prefWidth="90"/>
+            <TableColumn fx:id="colNacionalidade" text="Nacionalidade" prefWidth="130"/>
+        </columns>
+    </TableView>
+
+    <GridPane hgap="10" vgap="8">
+        <Label text="Nome:"                  GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+        <TextField fx:id="campoNome"         GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+        <Label text="Nº Certificado:"        GridPane.rowIndex="0" GridPane.columnIndex="2"/>
+        <TextField fx:id="campoCertificado"  GridPane.rowIndex="0" GridPane.columnIndex="3"/>
+
+        <Label text="Funcao:"                GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+        <ComboBox fx:id="comboFuncao"        GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+        <Label text="Nacionalidade:"         GridPane.rowIndex="1" GridPane.columnIndex="2"/>
+        <TextField fx:id="campoNacionalidade" GridPane.rowIndex="1" GridPane.columnIndex="3"/>
+
+        <Label text="Estado:"                GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+        <CheckBox fx:id="checkDisponivel" text="Disponivel" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+    </GridPane>
+
+    <HBox spacing="10">
+        <Button text="Novo"    onAction="#novo"/>
+        <Button text="Guardar" onAction="#guardar"/>
+        <Button text="Apagar"  onAction="#apagar"/>
+    </HBox>
+
+    <Label fx:id="labelMensagem"/>
+</VBox>

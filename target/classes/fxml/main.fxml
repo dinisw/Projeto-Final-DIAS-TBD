@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.text.Font?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.dias.navios.ui.controller.MainController"
+            fx:id="rootPane">
+
+    <top>
+        <HBox>
+            <padding><Insets top="14" right="20" bottom="14" left="20"/></padding>
+            <Label text="Gestao de Navios Petroleiros">
+                <font><Font size="18.0"/></font>
+            </Label>
+        </HBox>
+    </top>
+
+    <left>
+        <VBox spacing="6">
+            <padding><Insets top="14" right="10" bottom="14" left="10"/></padding>
+            <Button text="Navios"     onAction="#abrirNavios"     maxWidth="Infinity"/>
+            <Button text="Cargas"     onAction="#abrirCargas"     maxWidth="Infinity"/>
+            <Button text="Viagens"    onAction="#abrirViagens"    maxWidth="Infinity"/>
+            <Button text="Tripulacao" onAction="#abrirTripulacao" maxWidth="Infinity"/>
+            <Button text="Portos"     onAction="#abrirPortos"     maxWidth="Infinity"/>
+        </VBox>
+    </left>
+
+    <center>
+        <Label text="Bem-vindo! Escolha um modulo na barra lateral.">
+            <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+        </Label>
+    </center>
+
+</BorderPane>
