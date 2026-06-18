@@ -10,31 +10,28 @@ public class MainController {
     @FXML
     private BorderPane rootPane;
 
-    // Navega para o modulo de Navios
     @FXML
     public void abrirNavios() throws Exception {
-        Pane pane = FXMLLoader.load(getClass().getResource("/fxml/navios.fxml"));
-        rootPane.setCenter(pane);
+        rootPane.setCenter(FXMLLoader.load(getClass().getResource("/fxml/navios.fxml")));
     }
 
-    // Navega para o modulo de Cargas
     @FXML
     public void abrirCargas() throws Exception {
-        Pane pane = FXMLLoader.load(getClass().getResource("/fxml/cargas.fxml"));
-        rootPane.setCenter(pane);
+        rootPane.setCenter(FXMLLoader.load(getClass().getResource("/fxml/cargas.fxml")));
     }
 
-    // Navega para o modulo de Viagens
     @FXML
     public void abrirViagens() throws Exception {
-        Pane pane = FXMLLoader.load(getClass().getResource("/fxml/viagens.fxml"));
-        rootPane.setCenter(pane);
+        rootPane.setCenter(FXMLLoader.load(getClass().getResource("/fxml/viagens.fxml")));
     }
 
-    // Navega para o modulo de Tripulacao
     @FXML
     public void abrirTripulacao() throws Exception {
-        Pane pane = FXMLLoader.load(getClass().getResource("/fxml/tripulantes.fxml"));
-        rootPane.setCenter(pane);
+        rootPane.setCenter(FXMLLoader.load(getClass().getResource("/fxml/tripulantes.fxml")));
+    }
+
+    @FXML
+    public void abrirPortos() throws Exception {
+        rootPane.setCenter(FXMLLoader.load(getClass().getResource("/fxml/portos.fxml")));
     }
 }

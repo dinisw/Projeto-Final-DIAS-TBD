@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.dias.navios.ui.controller.PortoController"
+      spacing="8" style="-fx-padding: 12;">
+
+    <Label text="Gestão de Portos" style="-fx-font-size: 16; -fx-font-weight: bold;"/>
+
+    <HBox spacing="8">
+        <TextField fx:id="campoPesquisa" promptText="Pesquisar por nome, país ou código..." prefWidth="320"/>
+        <Button text="Pesquisar" onAction="#pesquisar"/>
+        <Button text="Novo"      onAction="#novoPorto"/>
+    </HBox>
+
+    <TableView fx:id="tabelaPortos" prefHeight="250" VBox.vgrow="ALWAYS">
+        <columns>
+            <TableColumn fx:id="colNome"   text="Nome"    prefWidth="220"/>
+            <TableColumn fx:id="colPais"   text="País"    prefWidth="140"/>
+            <TableColumn fx:id="colCodigo" text="Código"  prefWidth="100"/>
+        </columns>
+        <placeholder><Label text="Sem portos registados."/></placeholder>
+    </TableView>
+
+    <GridPane hgap="10" vgap="6">
+        <Label text="Nome:"    GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+        <TextField fx:id="campoNome"   GridPane.rowIndex="0" GridPane.columnIndex="1" prefWidth="240"/>
+
+        <Label text="País:"    GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+        <TextField fx:id="campoPais"   GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+        <Label text="Código:"  GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+        <TextField fx:id="campoCodigo" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+    </GridPane>
+
+    <HBox spacing="10">
+        <Button text="Guardar" onAction="#guardarPorto"/>
+        <Button text="Apagar"  onAction="#apagarPorto"/>
+    </HBox>
+
+    <Label fx:id="labelMensagem" style="-fx-text-fill: #c0392b;"/>
+
+</VBox>

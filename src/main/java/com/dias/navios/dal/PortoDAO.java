@@ -9,16 +9,43 @@ import java.util.List;
 public class PortoDAO {
 
     public void inserir(Porto porto) throws Exception {
-        // TODO: implementar INSERT na tabela portos
         String sql = "INSERT INTO portos (nome, pais, codigo) VALUES (?, ?, ?)";
         Connection conn = DatabaseConnection.getConnection();
         PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-        // TODO: preencher os parametros
+        ps.setString(1, porto.getNome());
+        ps.setString(2, porto.getPais());
+        ps.setString(3, porto.getCodigo());
+        ps.executeUpdate();
+        ResultSet keys = ps.getGeneratedKeys();
+        if (keys.next()) {
+            porto.setId(keys.getInt(1));
+        }
+        keys.close();
+        ps.close();
+    }
+
+    public void atualizar(Porto porto) throws Exception {
+        String sql = "UPDATE portos SET nome=?, pais=?, codigo=? WHERE id=?";
+        Connection conn = DatabaseConnection.getConnection();
+        PreparedStatement ps = conn.prepareStatement(sql);
+        ps.setString(1, porto.getNome());
+        ps.setString(2, porto.getPais());
+        ps.setString(3, porto.getCodigo());
+        ps.setInt(4, porto.getId());
+        ps.executeUpdate();
+        ps.close();
+    }
+
+    public void apagar(int id) throws Exception {
+        String sql = "DELETE FROM portos WHERE id=?";
+        Connection conn = DatabaseConnection.getConnection();
+        PreparedStatement ps = conn.prepareStatement(sql);
+        ps.setInt(1, id);
+        ps.executeUpdate();
         ps.close();
     }
 
     public Porto buscarPorId(int id) throws Exception {
-        // TODO: implementar SELECT por id
         String sql = "SELECT * FROM portos WHERE id=?";
         Connection conn = DatabaseConnection.getConnection();
         PreparedStatement ps = conn.prepareStatement(sql);
@@ -34,9 +61,8 @@ public class PortoDAO {
     }
 
     public List<Porto> listarTodos() throws Exception {
-        // TODO: implementar SELECT de todos os portos
         List<Porto> lista = new ArrayList<>();
-        String sql = "SELECT * FROM portos";
+        String sql = "SELECT * FROM portos ORDER BY nome";
         Connection conn = DatabaseConnection.getConnection();
         Statement st = conn.createStatement();
         ResultSet rs = st.executeQuery(sql);
@@ -48,7 +74,7 @@ public class PortoDAO {
         return lista;
     }
 
-    private Porto mapearResultSet(ResultSet rs) throws SQLException {
+    Porto mapearResultSet(ResultSet rs) throws SQLException {
         Porto porto = new Porto();
         porto.setId(rs.getInt("id"));
         porto.setNome(rs.getString("nome"));

@@ -10,20 +10,62 @@ import java.util.List;
 public class CargaDAO {
 
     public void inserir(Carga carga) throws Exception {
-        // TODO: implementar INSERT na tabela cargas
         String sql = "INSERT INTO cargas (designacao, tipo, volume, peso, inflamavel, corrosiva, toxica, porto_carregamento_id, porto_descarga_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         Connection conn = DatabaseConnection.getConnection();
         PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-        // TODO: preencher os parametros
+        ps.setString(1, carga.getDesignacao());
+        ps.setString(2, carga.getTipo().name());
+        ps.setDouble(3, carga.getVolume());
+        ps.setDouble(4, carga.getPeso());
+        ps.setBoolean(5, carga.isInflamavel());
+        ps.setBoolean(6, carga.isCorrosiva());
+        ps.setBoolean(7, carga.isToxica());
+        if (carga.getPortoCarregamentoId() > 0) {
+            ps.setInt(8, carga.getPortoCarregamentoId());
+        } else {
+            ps.setNull(8, Types.INTEGER);
+        }
+        if (carga.getPortoDescargaId() > 0) {
+            ps.setInt(9, carga.getPortoDescargaId());
+        } else {
+            ps.setNull(9, Types.INTEGER);
+        }
+        ps.executeUpdate();
+        ResultSet keys = ps.getGeneratedKeys();
+        if (keys.next()) {
+            carga.setId(keys.getInt(1));
+        }
+        keys.close();
         ps.close();
     }
 
     public void atualizar(Carga carga) throws Exception {
-        // TODO: implementar UPDATE na tabela cargas
+        String sql = "UPDATE cargas SET designacao=?, tipo=?, volume=?, peso=?, inflamavel=?, corrosiva=?, toxica=?, porto_carregamento_id=?, porto_descarga_id=? WHERE id=?";
+        Connection conn = DatabaseConnection.getConnection();
+        PreparedStatement ps = conn.prepareStatement(sql);
+        ps.setString(1, carga.getDesignacao());
+        ps.setString(2, carga.getTipo().name());
+        ps.setDouble(3, carga.getVolume());
+        ps.setDouble(4, carga.getPeso());
+        ps.setBoolean(5, carga.isInflamavel());
+        ps.setBoolean(6, carga.isCorrosiva());
+        ps.setBoolean(7, carga.isToxica());
+        if (carga.getPortoCarregamentoId() > 0) {
+            ps.setInt(8, carga.getPortoCarregamentoId());
+        } else {
+            ps.setNull(8, Types.INTEGER);
+        }
+        if (carga.getPortoDescargaId() > 0) {
+            ps.setInt(9, carga.getPortoDescargaId());
+        } else {
+            ps.setNull(9, Types.INTEGER);
+        }
+        ps.setInt(10, carga.getId());
+        ps.executeUpdate();
+        ps.close();
     }
 
     public void apagar(int id) throws Exception {
-        // TODO: implementar DELETE na tabela cargas
         String sql = "DELETE FROM cargas WHERE id=?";
         Connection conn = DatabaseConnection.getConnection();
         PreparedStatement ps = conn.prepareStatement(sql);
@@ -33,7 +75,6 @@ public class CargaDAO {
     }
 
     public Carga buscarPorId(int id) throws Exception {
-        // TODO: implementar SELECT por id
         String sql = "SELECT * FROM cargas WHERE id=?";
         Connection conn = DatabaseConnection.getConnection();
         PreparedStatement ps = conn.prepareStatement(sql);
@@ -49,9 +90,8 @@ public class CargaDAO {
     }
 
     public List<Carga> listarTodos() throws Exception {
-        // TODO: implementar SELECT de todas as cargas
         List<Carga> lista = new ArrayList<>();
-        String sql = "SELECT * FROM cargas";
+        String sql = "SELECT * FROM cargas ORDER BY designacao";
         Connection conn = DatabaseConnection.getConnection();
         Statement st = conn.createStatement();
         ResultSet rs = st.executeQuery(sql);
@@ -63,8 +103,7 @@ public class CargaDAO {
         return lista;
     }
 
-    private Carga mapearResultSet(ResultSet rs) throws SQLException {
-        // TODO: converter linha do ResultSet num objeto Carga
+    Carga mapearResultSet(ResultSet rs) throws SQLException {
         Carga carga = new Carga();
         carga.setId(rs.getInt("id"));
         carga.setDesignacao(rs.getString("designacao"));

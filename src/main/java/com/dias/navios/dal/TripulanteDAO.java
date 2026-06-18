@@ -10,20 +10,38 @@ import java.util.List;
 public class TripulanteDAO {
 
     public void inserir(Tripulante t) throws Exception {
-        // TODO: implementar INSERT na tabela tripulantes
         String sql = "INSERT INTO tripulantes (nome, numero_certificado, funcao, disponivel, nacionalidade) VALUES (?, ?, ?, ?, ?)";
         Connection conn = DatabaseConnection.getConnection();
         PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-        // TODO: preencher os parametros
+        ps.setString(1, t.getNome());
+        ps.setString(2, t.getNumeroCertificado());
+        ps.setString(3, t.getFuncao().name());
+        ps.setBoolean(4, t.isDisponivel());
+        ps.setString(5, t.getNacionalidade());
+        ps.executeUpdate();
+        ResultSet keys = ps.getGeneratedKeys();
+        if (keys.next()) {
+            t.setId(keys.getInt(1));
+        }
+        keys.close();
         ps.close();
     }
 
     public void atualizar(Tripulante t) throws Exception {
-        // TODO: implementar UPDATE na tabela tripulantes
+        String sql = "UPDATE tripulantes SET nome=?, numero_certificado=?, funcao=?, disponivel=?, nacionalidade=? WHERE id=?";
+        Connection conn = DatabaseConnection.getConnection();
+        PreparedStatement ps = conn.prepareStatement(sql);
+        ps.setString(1, t.getNome());
+        ps.setString(2, t.getNumeroCertificado());
+        ps.setString(3, t.getFuncao().name());
+        ps.setBoolean(4, t.isDisponivel());
+        ps.setString(5, t.getNacionalidade());
+        ps.setInt(6, t.getId());
+        ps.executeUpdate();
+        ps.close();
     }
 
     public void apagar(int id) throws Exception {
-        // TODO: implementar DELETE na tabela tripulantes
         String sql = "DELETE FROM tripulantes WHERE id=?";
         Connection conn = DatabaseConnection.getConnection();
         PreparedStatement ps = conn.prepareStatement(sql);
@@ -33,7 +51,6 @@ public class TripulanteDAO {
     }
 
     public Tripulante buscarPorId(int id) throws Exception {
-        // TODO: implementar SELECT por id
         String sql = "SELECT * FROM tripulantes WHERE id=?";
         Connection conn = DatabaseConnection.getConnection();
         PreparedStatement ps = conn.prepareStatement(sql);
@@ -49,9 +66,8 @@ public class TripulanteDAO {
     }
 
     public List<Tripulante> listarTodos() throws Exception {
-        // TODO: implementar SELECT de todos os tripulantes
         List<Tripulante> lista = new ArrayList<>();
-        String sql = "SELECT * FROM tripulantes";
+        String sql = "SELECT * FROM tripulantes ORDER BY nome";
         Connection conn = DatabaseConnection.getConnection();
         Statement st = conn.createStatement();
         ResultSet rs = st.executeQuery(sql);
@@ -63,8 +79,7 @@ public class TripulanteDAO {
         return lista;
     }
 
-    private Tripulante mapearResultSet(ResultSet rs) throws SQLException {
-        // TODO: converter linha do ResultSet num objeto Tripulante
+    Tripulante mapearResultSet(ResultSet rs) throws SQLException {
         Tripulante t = new Tripulante();
         t.setId(rs.getInt("id"));
         t.setNome(rs.getString("nome"));

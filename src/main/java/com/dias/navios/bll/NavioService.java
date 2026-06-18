@@ -1,6 +1,7 @@
 package com.dias.navios.bll;
 
 import com.dias.navios.dal.NavioDAO;
+import com.dias.navios.dal.ViagemDAO;
 import com.dias.navios.model.EstadoNavio;
 import com.dias.navios.model.Navio;
 
@@ -9,25 +10,22 @@ import java.util.List;
 public class NavioService {
 
     private NavioDAO navioDAO = new NavioDAO();
+    private ViagemDAO viagemDAO = new ViagemDAO();
 
     public void registarNavio(Navio navio) throws Exception {
-        // TODO: validar campos obrigatorios antes de inserir
-        if (navio.getNome() == null || navio.getNome().isEmpty()) {
-            throw new IllegalArgumentException("O nome do navio é obrigatorio.");
-        }
-        if (navio.getCodigoIMO() == null || navio.getCodigoIMO().isEmpty()) {
-            throw new IllegalArgumentException("O codigo IMO e obrigatorio.");
-        }
+        validarNavio(navio);
         navioDAO.inserir(navio);
     }
 
     public void editarNavio(Navio navio) throws Exception {
-        // TODO: validar antes de atualizar
+        validarNavio(navio);
         navioDAO.atualizar(navio);
     }
 
     public void apagarNavio(int id) throws Exception {
-        // TODO: verificar se o navio nao tem viagens ativas antes de apagar
+        if (viagemDAO.navioTemViagemAtiva(id)) {
+            throw new IllegalStateException("Não é possível apagar um navio com viagens planeadas ou em curso.");
+        }
         navioDAO.apagar(id);
     }
 
@@ -39,8 +37,28 @@ public class NavioService {
         return navioDAO.listarTodos();
     }
 
-    public boolean podeIniciarViagem(Navio navio) {
-        // Regra: navios em manutencao ou inativos nao podem iniciar viagens
-        return navio.getEstado() == EstadoNavio.ATIVO;
+    public List<Navio> listarNaviosAtivos() throws Exception {
+        return navioDAO.listarPorEstado(EstadoNavio.ATIVO);
+    }
+
+    private void validarNavio(Navio navio) {
+        if (navio.getNome() == null || navio.getNome().isBlank()) {
+            throw new IllegalArgumentException("O nome do navio é obrigatório.");
+        }
+        if (navio.getCodigoIMO() == null || navio.getCodigoIMO().isBlank()) {
+            throw new IllegalArgumentException("O código IMO é obrigatório.");
+        }
+        if (navio.getTipo() == null) {
+            throw new IllegalArgumentException("O tipo de navio é obrigatório.");
+        }
+        if (navio.getCapacidadeMaxima() <= 0) {
+            throw new IllegalArgumentException("A capacidade máxima deve ser maior que zero.");
+        }
+        if (navio.getNumTanques() <= 0) {
+            throw new IllegalArgumentException("O número de tanques deve ser maior que zero.");
+        }
+        if (navio.getEstado() == null) {
+            throw new IllegalArgumentException("O estado do navio é obrigatório.");
+        }
     }
 }

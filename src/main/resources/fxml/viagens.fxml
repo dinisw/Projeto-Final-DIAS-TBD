@@ -4,44 +4,91 @@
 
 <VBox xmlns:fx="http://javafx.com/fxml"
       fx:controller="com.dias.navios.ui.controller.ViagemController"
-      spacing="10" style="-fx-padding: 15;">
+      spacing="8" style="-fx-padding: 12;">
 
-    <Label text="Gestao de Viagens" style="-fx-font-size: 16; -fx-font-weight: bold;"/>
+    <Label text="Gestão de Viagens" style="-fx-font-size: 16; -fx-font-weight: bold;"/>
 
-    <TableView fx:id="tabelaViagens" prefHeight="250">
+    <HBox spacing="8">
+        <TextField fx:id="campoPesquisa" promptText="Filtrar por estado ou ID..." prefWidth="280"/>
+        <Button text="Pesquisar" onAction="#pesquisar"/>
+        <Button text="Nova"      onAction="#novaViagem"/>
+    </HBox>
+
+    <TableView fx:id="tabelaViagens" prefHeight="180">
         <columns>
-            <TableColumn text="ID"           prefWidth="60"/>
-            <TableColumn text="Navio"        prefWidth="150"/>
-            <TableColumn text="Origem"       prefWidth="130"/>
-            <TableColumn text="Destino"      prefWidth="130"/>
-            <TableColumn text="Estado"       prefWidth="100"/>
-            <TableColumn text="Partida"      prefWidth="100"/>
+            <TableColumn fx:id="colViagemId"      text="ID"       prefWidth="50"/>
+            <TableColumn fx:id="colViagemNavio"   text="Navio"    prefWidth="100"/>
+            <TableColumn fx:id="colViagemOrigem"  text="Origem"   prefWidth="100"/>
+            <TableColumn fx:id="colViagemDestino" text="Destino"  prefWidth="100"/>
+            <TableColumn fx:id="colViagemPartida" text="Partida"  prefWidth="100"/>
+            <TableColumn fx:id="colViagemEstado"  text="Estado"   prefWidth="100"/>
         </columns>
+        <placeholder><Label text="Sem viagens registadas."/></placeholder>
     </TableView>
 
-    <GridPane hgap="10" vgap="8">
-        <Label text="ID do Navio:"                 GridPane.rowIndex="0" GridPane.columnIndex="0"/>
-        <TextField fx:id="campoNavioId"            GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+    <!-- Formulário base -->
+    <GridPane hgap="10" vgap="6">
+        <Label text="Navio:"               GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+        <ComboBox fx:id="comboNavio"       GridPane.rowIndex="0" GridPane.columnIndex="1" prefWidth="220"/>
 
-        <Label text="ID Porto de Origem:"          GridPane.rowIndex="1" GridPane.columnIndex="0"/>
-        <TextField fx:id="campoPortoOrigemId"      GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+        <Label text="Porto Origem:"         GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+        <ComboBox fx:id="comboPortoOrigem"  GridPane.rowIndex="1" GridPane.columnIndex="1" prefWidth="220"/>
 
-        <Label text="ID Porto de Destino:"         GridPane.rowIndex="2" GridPane.columnIndex="0"/>
-        <TextField fx:id="campoPortoDestinoId"     GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+        <Label text="Porto Destino:"        GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+        <ComboBox fx:id="comboPortoDestino" GridPane.rowIndex="2" GridPane.columnIndex="1" prefWidth="220"/>
 
-        <Label text="Data de Partida:"             GridPane.rowIndex="3" GridPane.columnIndex="0"/>
-        <DatePicker fx:id="campoDataPartida"       GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+        <Label text="Data Partida:"         GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+        <DatePicker fx:id="campoDataPartida" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
 
-        <Label text="Data Chegada Prevista:"       GridPane.rowIndex="4" GridPane.columnIndex="0"/>
-        <DatePicker fx:id="campoDataChegada"       GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+        <Label text="Data Chegada Prevista:" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+        <DatePicker fx:id="campoDataChegada" GridPane.rowIndex="4" GridPane.columnIndex="1"/>
     </GridPane>
 
-    <HBox spacing="10">
+    <!-- Capacidade -->
+    <Label fx:id="labelCapacidade" style="-fx-text-fill: #2980b9; -fx-font-style: italic;"/>
+
+    <!-- Cargas -->
+    <Label text="Cargas:" style="-fx-font-weight: bold;"/>
+    <HBox spacing="6">
+        <VBox spacing="4" prefWidth="300">
+            <Label text="Disponíveis:"/>
+            <ListView fx:id="listaCargasDisponiveis" prefHeight="100"/>
+        </VBox>
+        <VBox alignment="CENTER" spacing="6" style="-fx-padding: 20 0 0 0;">
+            <Button text="→" onAction="#adicionarCarga"    prefWidth="36"/>
+            <Button text="←" onAction="#removerCarga"      prefWidth="36"/>
+        </VBox>
+        <VBox spacing="4" prefWidth="300">
+            <Label text="Na Viagem:"/>
+            <ListView fx:id="listaCargasSelecionadas" prefHeight="100"/>
+        </VBox>
+    </HBox>
+
+    <!-- Tripulantes -->
+    <Label text="Tripulantes:" style="-fx-font-weight: bold;"/>
+    <HBox spacing="6">
+        <VBox spacing="4" prefWidth="300">
+            <Label text="Disponíveis:"/>
+            <ListView fx:id="listaTripulantesDisponiveis" prefHeight="100"/>
+        </VBox>
+        <VBox alignment="CENTER" spacing="6" style="-fx-padding: 20 0 0 0;">
+            <Button text="→" onAction="#adicionarTripulante"  prefWidth="36"/>
+            <Button text="←" onAction="#removerTripulante"    prefWidth="36"/>
+        </VBox>
+        <VBox spacing="4" prefWidth="300">
+            <Label text="Na Viagem:"/>
+            <ListView fx:id="listaTripulantesSelecionados" prefHeight="100"/>
+        </VBox>
+    </HBox>
+
+    <!-- Botões de acção -->
+    <HBox spacing="8">
         <Button text="Criar Viagem"    onAction="#criarViagem"/>
-        <Button text="Avancar Estado"  onAction="#avancarEstado"/>
+        <Button text="Guardar Edição"  onAction="#editarViagem"/>
+        <Button text="Avançar Estado"  onAction="#avancarEstado"/>
         <Button text="Cancelar"        onAction="#cancelarViagem"/>
     </HBox>
 
-    <Label fx:id="labelMensagem" style="-fx-text-fill: red;"/>
+    <Label fx:id="labelMensagem" style="-fx-text-fill: #c0392b;"/>
 
 </VBox>

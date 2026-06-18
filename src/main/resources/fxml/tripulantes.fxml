@@ -4,34 +4,42 @@
 
 <VBox xmlns:fx="http://javafx.com/fxml"
       fx:controller="com.dias.navios.ui.controller.TripulanteController"
-      spacing="10" style="-fx-padding: 15;">
+      spacing="8" style="-fx-padding: 12;">
 
-    <Label text="Gestao de Tripulacao" style="-fx-font-size: 16; -fx-font-weight: bold;"/>
+    <Label text="Gestão de Tripulação" style="-fx-font-size: 16; -fx-font-weight: bold;"/>
 
-    <TableView fx:id="tabelaTripulantes" prefHeight="250">
+    <HBox spacing="8">
+        <TextField fx:id="campoPesquisa" promptText="Pesquisar por nome ou função..." prefWidth="300"/>
+        <Button text="Pesquisar"  onAction="#pesquisar"/>
+        <Button text="Novo"       onAction="#novoTripulante"/>
+    </HBox>
+
+    <TableView fx:id="tabelaTripulantes" prefHeight="180" VBox.vgrow="ALWAYS">
         <columns>
-            <TableColumn text="Nome"          prefWidth="200"/>
-            <TableColumn text="Funcao"        prefWidth="120"/>
-            <TableColumn text="Certificado"   prefWidth="150"/>
-            <TableColumn text="Disponivel"    prefWidth="100"/>
+            <TableColumn fx:id="colNome"         text="Nome"           prefWidth="180"/>
+            <TableColumn fx:id="colFuncao"       text="Função"         prefWidth="110"/>
+            <TableColumn fx:id="colCertificado"  text="Certificado"    prefWidth="140"/>
+            <TableColumn fx:id="colDisponivel"   text="Disponível"     prefWidth="80"/>
+            <TableColumn fx:id="colNacionalidade" text="Nacionalidade" prefWidth="120"/>
         </columns>
+        <placeholder><Label text="Sem tripulantes registados."/></placeholder>
     </TableView>
 
-    <GridPane hgap="10" vgap="8">
-        <Label text="Nome:"                        GridPane.rowIndex="0" GridPane.columnIndex="0"/>
-        <TextField fx:id="campoNome"               GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+    <GridPane hgap="10" vgap="6">
+        <Label text="Nome:"                         GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+        <TextField fx:id="campoNome"                GridPane.rowIndex="0" GridPane.columnIndex="1" prefWidth="220"/>
 
-        <Label text="Num. Certificado:"            GridPane.rowIndex="1" GridPane.columnIndex="0"/>
-        <TextField fx:id="campoCertificado"        GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+        <Label text="Nº Certificado:"               GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+        <TextField fx:id="campoCertificado"         GridPane.rowIndex="1" GridPane.columnIndex="1"/>
 
-        <Label text="Funcao:"                      GridPane.rowIndex="2" GridPane.columnIndex="0"/>
-        <ComboBox fx:id="comboFuncao"              GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+        <Label text="Função:"                       GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+        <ComboBox fx:id="comboFuncao"               GridPane.rowIndex="2" GridPane.columnIndex="1" prefWidth="220"/>
 
-        <Label text="Disponivel:"                  GridPane.rowIndex="3" GridPane.columnIndex="0"/>
-        <CheckBox fx:id="checkDisponivel"          GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+        <Label text="Disponível:"                   GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+        <CheckBox fx:id="checkDisponivel"           GridPane.rowIndex="3" GridPane.columnIndex="1"/>
 
-        <Label text="Nacionalidade:"               GridPane.rowIndex="4" GridPane.columnIndex="0"/>
-        <TextField fx:id="campoNacionalidade"      GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+        <Label text="Nacionalidade:"                GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+        <TextField fx:id="campoNacionalidade"       GridPane.rowIndex="4" GridPane.columnIndex="1"/>
     </GridPane>
 
     <HBox spacing="10">
@@ -39,6 +47,17 @@
         <Button text="Apagar"  onAction="#apagarTripulante"/>
     </HBox>
 
-    <Label fx:id="labelMensagem" style="-fx-text-fill: red;"/>
+    <Label text="Histórico de Viagens:" style="-fx-font-weight: bold;"/>
+
+    <TableView fx:id="tabelaHistorico" prefHeight="130">
+        <columns>
+            <TableColumn fx:id="colHistViagem"  text="Viagem"   prefWidth="100"/>
+            <TableColumn fx:id="colHistEstado"  text="Estado"   prefWidth="120"/>
+            <TableColumn fx:id="colHistPartida" text="Partida"  prefWidth="120"/>
+        </columns>
+        <placeholder><Label text="Sem histórico de viagens."/></placeholder>
+    </TableView>
+
+    <Label fx:id="labelMensagem" style="-fx-text-fill: #c0392b;"/>
 
 </VBox>

@@ -11,22 +11,27 @@
             <menus>
                 <Menu text="Navios">
                     <items>
-                        <MenuItem text="Gerir Navios" onAction="#abrirNavios"/>
+                        <MenuItem text="Gerir Navios"    onAction="#abrirNavios"/>
                     </items>
                 </Menu>
                 <Menu text="Cargas">
                     <items>
-                        <MenuItem text="Gerir Cargas" onAction="#abrirCargas"/>
+                        <MenuItem text="Gerir Cargas"    onAction="#abrirCargas"/>
                     </items>
                 </Menu>
                 <Menu text="Viagens">
                     <items>
-                        <MenuItem text="Gerir Viagens" onAction="#abrirViagens"/>
+                        <MenuItem text="Gerir Viagens"   onAction="#abrirViagens"/>
                     </items>
                 </Menu>
-                <Menu text="Tripulacao">
+                <Menu text="Tripulação">
                     <items>
-                        <MenuItem text="Gerir Tripulacao" onAction="#abrirTripulacao"/>
+                        <MenuItem text="Gerir Tripulação" onAction="#abrirTripulacao"/>
+                    </items>
+                </Menu>
+                <Menu text="Portos">
+                    <items>
+                        <MenuItem text="Gerir Portos"    onAction="#abrirPortos"/>
                     </items>
                 </Menu>
             </menus>
@@ -34,9 +39,8 @@
     </top>
 
     <center>
-        <!-- O conteudo de cada modulo e carregado aqui -->
-        <Label text="Bem-vindo ao Sistema de Gestao de Navios Petroleiros"
-               style="-fx-font-size: 18; -fx-padding: 20;"/>
+        <Label text="Bem-vindo ao Sistema de Gestão de Navios Petroleiros (SMF)"
+               style="-fx-font-size: 18; -fx-padding: 40; -fx-text-alignment: center;"/>
     </center>
 
 </BorderPane>
