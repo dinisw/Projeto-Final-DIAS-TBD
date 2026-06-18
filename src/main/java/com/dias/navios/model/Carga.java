@@ -1,7 +1,6 @@
 package com.dias.navios.model;
 
-public class
-Carga {
+public class Carga {
 
     private int id;
     private String designacao;

@@ -39,6 +39,19 @@ public class ViagemDAO {
         if (id > 0) viagem.setId(id);
     }
 
+    public void atualizar(Viagem viagem) throws Exception {
+        String sql = "UPDATE viagens SET porto_origem_id=?, porto_destino_id=?, data_partida=?, " +
+                "data_chegada_prevista=?, navio_id=?, estado=? WHERE id=?";
+        db.execute(sql,
+                viagem.getPortoOrigemId(),
+                viagem.getPortoDestinoId(),
+                viagem.getDataPartida() == null ? null : Date.valueOf(viagem.getDataPartida()),
+                viagem.getDataChegadaPrevista() == null ? null : Date.valueOf(viagem.getDataChegadaPrevista()),
+                viagem.getNavioId(),
+                viagem.getEstado() == null ? null : viagem.getEstado().name(),
+                viagem.getId());
+    }
+
     public void atualizarEstado(int id, EstadoViagem estado) throws Exception {
         db.execute("UPDATE viagens SET estado=? WHERE id=?", estado.name(), id);
     }
@@ -56,10 +69,10 @@ public class ViagemDAO {
         return db.select("SELECT * FROM viagens", mapper);
     }
 
-    /** Regra de negocio: um navio so pode ter uma viagem em curso de cada vez. */
+    /** Regra de negocio: um navio so pode ter uma viagem planeada ou em curso de cada vez. */
     public boolean navioTemViagemAtiva(int navioId) throws Exception {
         List<Integer> total = db.select(
-                "SELECT COUNT(*) AS total FROM viagens WHERE navio_id=? AND estado='EM_CURSO'",
+                "SELECT COUNT(*) AS total FROM viagens WHERE navio_id=? AND estado IN ('PLANEADA','EM_CURSO')",
                 rs -> rs.getInt("total"),
                 navioId);
         return !total.isEmpty() && total.get(0) > 0;

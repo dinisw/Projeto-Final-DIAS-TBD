@@ -42,6 +42,8 @@ public class ViagemController {
     private final Map<Integer, Navio> naviosPorId = new HashMap<>();
     private final Map<Integer, Porto> portosPorId = new HashMap<>();
 
+    private Viagem selecionado; // null => criar nova viagem
+
     @FXML
     public void initialize() {
         colId.setCellValueFactory(c -> new SimpleStringProperty(String.valueOf(c.getValue().getId())));
@@ -52,7 +54,21 @@ public class ViagemController {
         colChegada.setCellValueFactory(c -> new SimpleStringProperty(texto(c.getValue().getDataChegadaPrevista())));
         colEstado.setCellValueFactory(c -> new SimpleStringProperty(texto(c.getValue().getEstado())));
 
+        tabela.getSelectionModel().selectedItemProperty()
+                .addListener((obs, antigo, novo) -> preencher(novo));
+
         recarregar();
+    }
+
+    private void preencher(Viagem v) {
+        selecionado = v;
+        if (v == null) return;
+        comboNavio.setValue(naviosPorId.get(v.getNavioId()));
+        comboOrigem.setValue(portosPorId.get(v.getPortoOrigemId()));
+        comboDestino.setValue(portosPorId.get(v.getPortoDestinoId()));
+        dataPartida.setValue(v.getDataPartida());
+        dataChegada.setValue(v.getDataChegadaPrevista());
+        labelMensagem.setText("A editar viagem #" + v.getId() + " [" + v.getEstado() + "]");
     }
 
     private void recarregar() {
@@ -76,6 +92,7 @@ public class ViagemController {
 
     @FXML
     public void novo() {
+        selecionado = null;
         comboNavio.setValue(null);
         comboOrigem.setValue(null);
         comboDestino.setValue(null);
@@ -88,14 +105,7 @@ public class ViagemController {
     @FXML
     public void criarViagem() {
         try {
-            if (comboNavio.getValue() == null) throw new IllegalArgumentException("Selecione o navio.");
-            if (comboOrigem.getValue() == null) throw new IllegalArgumentException("Selecione o porto de origem.");
-            if (comboDestino.getValue() == null) throw new IllegalArgumentException("Selecione o porto de destino.");
-            if (dataPartida.getValue() == null) throw new IllegalArgumentException("Indique a data de partida.");
-            if (comboOrigem.getValue().getId() == comboDestino.getValue().getId())
-                throw new IllegalArgumentException("A origem e o destino nao podem ser o mesmo porto.");
-            if (dataChegada.getValue() != null && dataChegada.getValue().isBefore(dataPartida.getValue()))
-                throw new IllegalArgumentException("A data de chegada nao pode ser anterior a de partida.");
+            validarFormulario();
 
             Viagem v = new Viagem();
             v.setNavioId(comboNavio.getValue().getId());
@@ -104,7 +114,7 @@ public class ViagemController {
             v.setDataPartida(dataPartida.getValue());
             v.setDataChegadaPrevista(dataChegada.getValue());
 
-            viagemService.criarViagem(v);   // o service valida regras de negocio e poe estado PLANEADA
+            viagemService.criarViagem(v);
             Dialogs.info("Viagem criada com sucesso (estado: PLANEADA).");
             novo();
             recarregar();
@@ -146,7 +156,44 @@ public class ViagemController {
         }
     }
 
+    @FXML
+    public void atualizarViagem() {
+        if (selecionado == null) { Dialogs.erro("Selecione uma viagem na tabela para editar."); return; }
+        try {
+            validarFormulario();
+
+            Viagem v = new Viagem();
+            v.setId(selecionado.getId());   // essencial — identifica qual viagem atualizar na BD
+            v.setNavioId(comboNavio.getValue().getId());
+            v.setPortoOrigemId(comboOrigem.getValue().getId());
+            v.setPortoDestinoId(comboDestino.getValue().getId());
+            v.setDataPartida(dataPartida.getValue());
+            v.setDataChegadaPrevista(dataChegada.getValue());
+
+            viagemService.atualizarViagem(v);
+            Dialogs.info("Viagem #" + selecionado.getId() + " atualizada com sucesso.");
+            novo();
+            recarregar();
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            Dialogs.erro(e.getMessage());
+        } catch (Exception e) {
+            Dialogs.erro("Erro ao atualizar viagem: " + e.getMessage());
+        }
+    }
+
     // ───── auxiliares ─────
+
+    private void validarFormulario() {
+        if (comboNavio.getValue() == null) throw new IllegalArgumentException("Selecione o navio.");
+        if (comboOrigem.getValue() == null) throw new IllegalArgumentException("Selecione o porto de origem.");
+        if (comboDestino.getValue() == null) throw new IllegalArgumentException("Selecione o porto de destino.");
+        if (dataPartida.getValue() == null) throw new IllegalArgumentException("Indique a data de partida.");
+        if (comboOrigem.getValue().getId() == comboDestino.getValue().getId())
+            throw new IllegalArgumentException("A origem e o destino nao podem ser o mesmo porto.");
+        if (dataChegada.getValue() != null && dataChegada.getValue().isBefore(dataPartida.getValue()))
+            throw new IllegalArgumentException("A data de chegada nao pode ser anterior a de partida.");
+    }
+
     private String texto(Object o) { return o == null ? "" : o.toString(); }
 
     private String nomeNavio(int id) {

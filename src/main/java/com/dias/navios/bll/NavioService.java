@@ -37,9 +37,4 @@ public class NavioService {
     public List<Navio> listarNavios() throws Exception {
         return navioDAO.listarTodos();
     }
-
-    public boolean podeIniciarViagem(Navio navio) {
-        // Regra: navios em manutencao ou inativos nao podem iniciar viagens
-        return navio.getEstado() == EstadoNavio.ATIVO;
-    }
 }

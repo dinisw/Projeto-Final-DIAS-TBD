@@ -91,6 +91,7 @@ public class NavioController {
         try {
             if (comboTipo.getValue() == null) throw new IllegalArgumentException("Selecione o tipo de navio.");
             if (comboEstado.getValue() == null) throw new IllegalArgumentException("Selecione o estado do navio.");
+            if (comboPorto.getValue() == null) throw new IllegalArgumentException("Selecione o porto atual do navio.");
 
             Navio navio = (selecionado == null) ? new Navio() : selecionado;
             navio.setNome(campoNome.getText());
@@ -101,7 +102,7 @@ public class NavioController {
             navio.setBandeira(campoBandeira.getText());
             navio.setAnoFabrico(parseInt(campoAno.getText(), "Ano de fabrico"));
             navio.setEstado(comboEstado.getValue());
-            navio.setPortoAtualId(comboPorto.getValue() == null ? 0 : comboPorto.getValue().getId());
+            navio.setPortoAtualId(comboPorto.getValue().getId());
 
             if (selecionado == null) {
                 navioService.registarNavio(navio);
