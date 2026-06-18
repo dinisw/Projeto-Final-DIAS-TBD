@@ -1,390 +1,208 @@
 package com.dias.navios.ui.controller;
 
-import com.dias.navios.bll.CargaService;
 import com.dias.navios.bll.NavioService;
 import com.dias.navios.bll.PortoService;
-import com.dias.navios.bll.TripulanteService;
 import com.dias.navios.bll.ViagemService;
-import com.dias.navios.model.*;
+import com.dias.navios.model.Navio;
+import com.dias.navios.model.Porto;
+import com.dias.navios.model.Viagem;
+import com.dias.navios.ui.Dialogs;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ViagemController {
 
-    // --- Tabela de viagens ---
-    @FXML private TableView<Viagem> tabelaViagens;
-    @FXML private TableColumn<Viagem, String> colViagemId;
-    @FXML private TableColumn<Viagem, String> colViagemNavio;
-    @FXML private TableColumn<Viagem, String> colViagemOrigem;
-    @FXML private TableColumn<Viagem, String> colViagemDestino;
-    @FXML private TableColumn<Viagem, String> colViagemEstado;
-    @FXML private TableColumn<Viagem, String> colViagemPartida;
+    @FXML private TableView<Viagem> tabela;
+    @FXML private TableColumn<Viagem, String> colId;
+    @FXML private TableColumn<Viagem, String> colNavio;
+    @FXML private TableColumn<Viagem, String> colOrigem;
+    @FXML private TableColumn<Viagem, String> colDestino;
+    @FXML private TableColumn<Viagem, String> colPartida;
+    @FXML private TableColumn<Viagem, String> colChegada;
+    @FXML private TableColumn<Viagem, String> colEstado;
 
-    // --- Formulário básico ---
     @FXML private ComboBox<Navio> comboNavio;
-    @FXML private ComboBox<Porto> comboPortoOrigem;
-    @FXML private ComboBox<Porto> comboPortoDestino;
-    @FXML private DatePicker campoDataPartida;
-    @FXML private DatePicker campoDataChegada;
-
-    // --- Listas de cargas ---
-    @FXML private ListView<Carga> listaCargasDisponiveis;
-    @FXML private ListView<Carga> listaCargasSelecionadas;
-
-    // --- Listas de tripulantes ---
-    @FXML private ListView<Tripulante> listaTripulantesDisponiveis;
-    @FXML private ListView<Tripulante> listaTripulantesSelecionados;
-
-    // --- Pesquisa e mensagem ---
-    @FXML private TextField campoPesquisa;
+    @FXML private ComboBox<Porto> comboOrigem;
+    @FXML private ComboBox<Porto> comboDestino;
+    @FXML private DatePicker dataPartida;
+    @FXML private DatePicker dataChegada;
     @FXML private Label labelMensagem;
-    @FXML private Label labelCapacidade;
 
-    private ViagemService viagemService = new ViagemService();
-    private NavioService navioService = new NavioService();
-    private PortoService portoService = new PortoService();
-    private CargaService cargaService = new CargaService();
-    private TripulanteService tripulanteService = new TripulanteService();
+    private final ViagemService viagemService = new ViagemService();
+    private final NavioService navioService = new NavioService();
+    private final PortoService portoService = new PortoService();
 
-    private Viagem viagemSelecionada = null;
-    private ObservableList<Carga> cargasDisponiveis = FXCollections.observableArrayList();
-    private ObservableList<Carga> cargasSelecionadas = FXCollections.observableArrayList();
-    private ObservableList<Tripulante> tripulantesDisponiveis = FXCollections.observableArrayList();
-    private ObservableList<Tripulante> tripulantesSelecionados = FXCollections.observableArrayList();
+    // Para mostrar nomes (em vez de IDs) na tabela
+    private final Map<Integer, Navio> naviosPorId = new HashMap<>();
+    private final Map<Integer, Porto> portosPorId = new HashMap<>();
+
+    private Viagem selecionado; // null => criar nova viagem
 
     @FXML
     public void initialize() {
-        configurarColunas();
-        carregarComboBoxes();
+        colId.setCellValueFactory(c -> new SimpleStringProperty(String.valueOf(c.getValue().getId())));
+        colNavio.setCellValueFactory(c -> new SimpleStringProperty(nomeNavio(c.getValue().getNavioId())));
+        colOrigem.setCellValueFactory(c -> new SimpleStringProperty(nomePorto(c.getValue().getPortoOrigemId())));
+        colDestino.setCellValueFactory(c -> new SimpleStringProperty(nomePorto(c.getValue().getPortoDestinoId())));
+        colPartida.setCellValueFactory(c -> new SimpleStringProperty(texto(c.getValue().getDataPartida())));
+        colChegada.setCellValueFactory(c -> new SimpleStringProperty(texto(c.getValue().getDataChegadaPrevista())));
+        colEstado.setCellValueFactory(c -> new SimpleStringProperty(texto(c.getValue().getEstado())));
 
-        listaCargasDisponiveis.setItems(cargasDisponiveis);
-        listaCargasSelecionadas.setItems(cargasSelecionadas);
-        listaTripulantesDisponiveis.setItems(tripulantesDisponiveis);
-        listaTripulantesSelecionados.setItems(tripulantesSelecionados);
+        tabela.getSelectionModel().selectedItemProperty()
+                .addListener((obs, antigo, novo) -> preencher(novo));
 
-        tabelaViagens.getSelectionModel().selectedItemProperty().addListener((obs, old, novo) -> {
-            if (novo != null) carregarViagemNoFormulario(novo);
-        });
-
-        comboNavio.valueProperty().addListener((obs, old, novo) -> atualizarCapacidade());
-
-        carregarTabela();
+        recarregar();
     }
 
-    private void configurarColunas() {
-        colViagemId.setCellValueFactory(c -> new SimpleStringProperty(String.valueOf(c.getValue().getId())));
-        colViagemNavio.setCellValueFactory(c -> new SimpleStringProperty("Navio #" + c.getValue().getNavioId()));
-        colViagemOrigem.setCellValueFactory(c -> new SimpleStringProperty("Porto #" + c.getValue().getPortoOrigemId()));
-        colViagemDestino.setCellValueFactory(c -> new SimpleStringProperty("Porto #" + c.getValue().getPortoDestinoId()));
-        colViagemEstado.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getEstado().name()));
-        colViagemPartida.setCellValueFactory(c -> new SimpleStringProperty(
-                c.getValue().getDataPartida() != null ? c.getValue().getDataPartida().toString() : ""));
+    private void preencher(Viagem v) {
+        selecionado = v;
+        if (v == null) return;
+        comboNavio.setValue(naviosPorId.get(v.getNavioId()));
+        comboOrigem.setValue(portosPorId.get(v.getPortoOrigemId()));
+        comboDestino.setValue(portosPorId.get(v.getPortoDestinoId()));
+        dataPartida.setValue(v.getDataPartida());
+        dataChegada.setValue(v.getDataChegadaPrevista());
+        labelMensagem.setText("A editar viagem #" + v.getId() + " [" + v.getEstado() + "]");
     }
 
-    private void carregarComboBoxes() {
+    private void recarregar() {
         try {
             List<Navio> navios = navioService.listarNavios();
+            naviosPorId.clear();
+            for (Navio n : navios) naviosPorId.put(n.getId(), n);
             comboNavio.setItems(FXCollections.observableArrayList(navios));
 
-            List<Porto> portos = portoService.listarPortos();
-            ObservableList<Porto> obsPortos = FXCollections.observableArrayList(portos);
-            comboPortoOrigem.setItems(obsPortos);
-            comboPortoDestino.setItems(FXCollections.observableArrayList(portos));
+            List<Porto> portos = portoService.listar();
+            portosPorId.clear();
+            for (Porto p : portos) portosPorId.put(p.getId(), p);
+            comboOrigem.setItems(FXCollections.observableArrayList(portos));
+            comboDestino.setItems(FXCollections.observableArrayList(portos));
 
-            List<Carga> todasCargas = cargaService.listarCargas();
-            cargasDisponiveis.setAll(todasCargas);
-
-            List<Tripulante> todosTripulantes = tripulanteService.listarTripulantes();
-            tripulantesDisponiveis.setAll(todosTripulantes);
+            tabela.setItems(FXCollections.observableArrayList(viagemService.listarViagens()));
         } catch (Exception e) {
             labelMensagem.setText("Erro ao carregar dados: " + e.getMessage());
         }
     }
 
-    private void carregarTabela() {
-        try {
-            List<Viagem> viagens = viagemService.listarViagens();
-            String filtro = campoPesquisa != null ? campoPesquisa.getText().toLowerCase() : "";
-            if (!filtro.isBlank()) {
-                viagens.removeIf(v -> !v.getEstado().name().toLowerCase().contains(filtro)
-                        && !String.valueOf(v.getId()).contains(filtro));
-            }
-            tabelaViagens.setItems(FXCollections.observableArrayList(viagens));
-        } catch (Exception e) {
-            labelMensagem.setText("Erro ao carregar viagens: " + e.getMessage());
-        }
-    }
-
-    private void carregarViagemNoFormulario(Viagem viagem) {
-        viagemSelecionada = viagem;
-
-        comboNavio.getItems().stream()
-            .filter(n -> n.getId() == viagem.getNavioId())
-            .findFirst().ifPresent(comboNavio::setValue);
-        comboPortoOrigem.getItems().stream()
-            .filter(p -> p.getId() == viagem.getPortoOrigemId())
-            .findFirst().ifPresent(comboPortoOrigem::setValue);
-        comboPortoDestino.getItems().stream()
-            .filter(p -> p.getId() == viagem.getPortoDestinoId())
-            .findFirst().ifPresent(comboPortoDestino::setValue);
-
-        campoDataPartida.setValue(viagem.getDataPartida());
-        campoDataChegada.setValue(viagem.getDataChegadaPrevista());
-
-        // Carregar cargas e tripulantes associados
-        try {
-            List<Carga> cargasViagem = viagemService.listarCargasDaViagem(viagem.getId());
-            List<Carga> todasCargas = cargaService.listarCargas();
-            todasCargas.removeAll(cargasViagem);
-            cargasSelecionadas.setAll(cargasViagem);
-            cargasDisponiveis.setAll(todasCargas);
-
-            List<Tripulante> tripulantesViagem = viagemService.listarTripulantesDaViagem(viagem.getId());
-            List<Tripulante> todosTripulantes = tripulanteService.listarTripulantes();
-            todosTripulantes.removeAll(tripulantesViagem);
-            tripulantesSelecionados.setAll(tripulantesViagem);
-            tripulantesDisponiveis.setAll(todosTripulantes);
-        } catch (Exception e) {
-            labelMensagem.setText("Erro ao carregar associações: " + e.getMessage());
-        }
-
-        atualizarCapacidade();
-        labelMensagem.setText("Viagem #" + viagem.getId() + " carregada — estado: " + viagem.getEstado());
-    }
-
-    private void atualizarCapacidade() {
-        if (labelCapacidade == null) return;
-        Navio navio = comboNavio.getValue();
-        if (navio == null) {
-            labelCapacidade.setText("");
-            return;
-        }
-        double pesoTotal = cargasSelecionadas.stream().mapToDouble(Carga::getPeso).sum();
-        labelCapacidade.setText(String.format("Capacidade: %.1f / %.1f ton (%.0f%%)",
-                pesoTotal, navio.getCapacidadeMaxima(),
-                navio.getCapacidadeMaxima() > 0 ? (pesoTotal / navio.getCapacidadeMaxima() * 100) : 0));
-    }
-
-    // --- Acções sobre cargas ---
-
     @FXML
-    public void adicionarCarga() {
-        Carga carga = listaCargasDisponiveis.getSelectionModel().getSelectedItem();
-        if (carga == null) {
-            labelMensagem.setText("Seleccione uma carga para adicionar.");
-            return;
-        }
-        if (viagemSelecionada != null) {
-            try {
-                viagemService.associarCarga(viagemSelecionada.getId(), carga.getId());
-                cargasSelecionadas.add(carga);
-                cargasDisponiveis.remove(carga);
-                atualizarCapacidade();
-                labelMensagem.setText("Carga associada com sucesso.");
-            } catch (Exception e) {
-                labelMensagem.setText(e.getMessage());
-            }
-        } else {
-            // Modo criação: gestão em memória; a associação será feita após criar a viagem
-            cargasSelecionadas.add(carga);
-            cargasDisponiveis.remove(carga);
-            atualizarCapacidade();
-        }
+    public void novo() {
+        selecionado = null;
+        comboNavio.setValue(null);
+        comboOrigem.setValue(null);
+        comboDestino.setValue(null);
+        dataPartida.setValue(null);
+        dataChegada.setValue(null);
+        tabela.getSelectionModel().clearSelection();
+        labelMensagem.setText("A planear uma nova viagem.");
     }
-
-    @FXML
-    public void removerCarga() {
-        Carga carga = listaCargasSelecionadas.getSelectionModel().getSelectedItem();
-        if (carga == null) {
-            labelMensagem.setText("Seleccione uma carga para remover.");
-            return;
-        }
-        if (viagemSelecionada != null) {
-            try {
-                viagemService.removerCarga(viagemSelecionada.getId(), carga.getId());
-                cargasDisponiveis.add(carga);
-                cargasSelecionadas.remove(carga);
-                atualizarCapacidade();
-                labelMensagem.setText("Carga removida.");
-            } catch (Exception e) {
-                labelMensagem.setText(e.getMessage());
-            }
-        } else {
-            cargasDisponiveis.add(carga);
-            cargasSelecionadas.remove(carga);
-            atualizarCapacidade();
-        }
-    }
-
-    // --- Acções sobre tripulantes ---
-
-    @FXML
-    public void adicionarTripulante() {
-        Tripulante t = listaTripulantesDisponiveis.getSelectionModel().getSelectedItem();
-        if (t == null) {
-            labelMensagem.setText("Seleccione um tripulante para adicionar.");
-            return;
-        }
-        if (viagemSelecionada != null) {
-            try {
-                viagemService.associarTripulante(viagemSelecionada.getId(), t.getId());
-                tripulantesSelecionados.add(t);
-                tripulantesDisponiveis.remove(t);
-                labelMensagem.setText("Tripulante associado com sucesso.");
-            } catch (Exception e) {
-                labelMensagem.setText(e.getMessage());
-            }
-        } else {
-            tripulantesSelecionados.add(t);
-            tripulantesDisponiveis.remove(t);
-        }
-    }
-
-    @FXML
-    public void removerTripulante() {
-        Tripulante t = listaTripulantesSelecionados.getSelectionModel().getSelectedItem();
-        if (t == null) {
-            labelMensagem.setText("Seleccione um tripulante para remover.");
-            return;
-        }
-        if (viagemSelecionada != null) {
-            try {
-                viagemService.removerTripulante(viagemSelecionada.getId(), t.getId());
-                tripulantesDisponiveis.add(t);
-                tripulantesSelecionados.remove(t);
-                labelMensagem.setText("Tripulante removido.");
-            } catch (Exception e) {
-                labelMensagem.setText(e.getMessage());
-            }
-        } else {
-            tripulantesDisponiveis.add(t);
-            tripulantesSelecionados.remove(t);
-        }
-    }
-
-    // --- CRUD de viagens ---
 
     @FXML
     public void criarViagem() {
         try {
-            Viagem viagem = new Viagem();
-            preencherViagemDoFormulario(viagem);
+            validarFormulario();
 
-            // Validar compatibilidade de cargas antes de criar
-            Navio navio = comboNavio.getValue();
-            for (Carga c : cargasSelecionadas) {
-                if (!navio.getTipo().aceitaCarga(c.getTipo())) {
-                    labelMensagem.setText("Incompatibilidade: navio " + navio.getTipo()
-                            + " não aceita carga " + c.getTipo() + " (" + c.getDesignacao() + ").");
-                    return;
-                }
-            }
-            double pesoTotal = cargasSelecionadas.stream().mapToDouble(Carga::getPeso).sum();
-            if (pesoTotal > navio.getCapacidadeMaxima()) {
-                labelMensagem.setText("Capacidade excedida: " + pesoTotal + " ton > " + navio.getCapacidadeMaxima() + " ton.");
-                return;
-            }
+            Viagem v = new Viagem();
+            v.setNavioId(comboNavio.getValue().getId());
+            v.setPortoOrigemId(comboOrigem.getValue().getId());
+            v.setPortoDestinoId(comboDestino.getValue().getId());
+            v.setDataPartida(dataPartida.getValue());
+            v.setDataChegadaPrevista(dataChegada.getValue());
 
-            viagemService.criarViagem(viagem);
-
-            // Associar cargas e tripulantes
-            for (Carga c : cargasSelecionadas) {
-                viagemService.associarCarga(viagem.getId(), c.getId());
-            }
-            for (Tripulante t : tripulantesSelecionados) {
-                viagemService.associarTripulante(viagem.getId(), t.getId());
-            }
-
-            labelMensagem.setText("Viagem criada com sucesso (ID: " + viagem.getId() + ").");
-            novaViagem();
-            carregarTabela();
+            viagemService.criarViagem(v);
+            Dialogs.info("Viagem criada com sucesso (estado: PLANEADA).");
+            novo();
+            recarregar();
         } catch (IllegalArgumentException | IllegalStateException e) {
-            labelMensagem.setText("Regra de negócio: " + e.getMessage());
+            Dialogs.erro(e.getMessage());
         } catch (Exception e) {
-            labelMensagem.setText("Erro: " + e.getMessage());
-        }
-    }
-
-    @FXML
-    public void editarViagem() {
-        if (viagemSelecionada == null) {
-            labelMensagem.setText("Seleccione uma viagem na tabela para editar.");
-            return;
-        }
-        try {
-            preencherViagemDoFormulario(viagemSelecionada);
-            viagemService.editarViagem(viagemSelecionada);
-            labelMensagem.setText("Viagem actualizada com sucesso.");
-            carregarTabela();
-        } catch (Exception e) {
-            labelMensagem.setText("Erro: " + e.getMessage());
+            Dialogs.erro("Erro ao criar viagem: " + e.getMessage());
         }
     }
 
     @FXML
     public void avancarEstado() {
-        Viagem selecionada = tabelaViagens.getSelectionModel().getSelectedItem();
-        if (selecionada == null) {
-            labelMensagem.setText("Seleccione uma viagem.");
-            return;
-        }
+        Viagem sel = tabela.getSelectionModel().getSelectedItem();
+        if (sel == null) { Dialogs.erro("Selecione uma viagem na tabela."); return; }
         try {
-            viagemService.avancarEstado(selecionada.getId());
-            labelMensagem.setText("Estado avançado com sucesso.");
-            carregarTabela();
+            viagemService.avancarEstado(sel.getId());
+            Dialogs.info("Estado da viagem avancado.");
+            recarregar();
+        } catch (IllegalStateException e) {
+            Dialogs.erro(e.getMessage());
         } catch (Exception e) {
-            labelMensagem.setText("Erro: " + e.getMessage());
+            Dialogs.erro("Erro: " + e.getMessage());
         }
     }
 
     @FXML
     public void cancelarViagem() {
-        Viagem selecionada = tabelaViagens.getSelectionModel().getSelectedItem();
-        if (selecionada == null) {
-            labelMensagem.setText("Seleccione uma viagem.");
-            return;
-        }
+        Viagem sel = tabela.getSelectionModel().getSelectedItem();
+        if (sel == null) { Dialogs.erro("Selecione uma viagem na tabela."); return; }
+        if (!Dialogs.confirmar("Cancelar a viagem #" + sel.getId() + "?")) return;
         try {
-            viagemService.cancelarViagem(selecionada.getId());
-            labelMensagem.setText("Viagem cancelada.");
-            novaViagem();
-            carregarTabela();
+            viagemService.cancelarViagem(sel.getId());
+            Dialogs.info("Viagem cancelada.");
+            recarregar();
+        } catch (IllegalStateException e) {
+            Dialogs.erro(e.getMessage());
         } catch (Exception e) {
-            labelMensagem.setText("Erro: " + e.getMessage());
+            Dialogs.erro("Erro: " + e.getMessage());
         }
     }
 
     @FXML
-    public void pesquisar() {
-        carregarTabela();
+    public void atualizarViagem() {
+        if (selecionado == null) { Dialogs.erro("Selecione uma viagem na tabela para editar."); return; }
+        try {
+            validarFormulario();
+
+            Viagem v = new Viagem();
+            v.setId(selecionado.getId());   // essencial — identifica qual viagem atualizar na BD
+            v.setNavioId(comboNavio.getValue().getId());
+            v.setPortoOrigemId(comboOrigem.getValue().getId());
+            v.setPortoDestinoId(comboDestino.getValue().getId());
+            v.setDataPartida(dataPartida.getValue());
+            v.setDataChegadaPrevista(dataChegada.getValue());
+
+            viagemService.atualizarViagem(v);
+            Dialogs.info("Viagem #" + selecionado.getId() + " atualizada com sucesso.");
+            novo();
+            recarregar();
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            Dialogs.erro(e.getMessage());
+        } catch (Exception e) {
+            Dialogs.erro("Erro ao atualizar viagem: " + e.getMessage());
+        }
     }
 
-    @FXML
-    public void novaViagem() {
-        viagemSelecionada = null;
-        comboNavio.setValue(null);
-        comboPortoOrigem.setValue(null);
-        comboPortoDestino.setValue(null);
-        campoDataPartida.setValue(null);
-        campoDataChegada.setValue(null);
-        cargasSelecionadas.clear();
-        tripulantesSelecionados.clear();
-        carregarComboBoxes();
-        tabelaViagens.getSelectionModel().clearSelection();
-        if (labelCapacidade != null) labelCapacidade.setText("");
-        labelMensagem.setText("Formulário pronto para nova viagem.");
+    // ───── auxiliares ─────
+
+    private void validarFormulario() {
+        if (comboNavio.getValue() == null) throw new IllegalArgumentException("Selecione o navio.");
+        if (comboOrigem.getValue() == null) throw new IllegalArgumentException("Selecione o porto de origem.");
+        if (comboDestino.getValue() == null) throw new IllegalArgumentException("Selecione o porto de destino.");
+        if (dataPartida.getValue() == null) throw new IllegalArgumentException("Indique a data de partida.");
+        if (comboOrigem.getValue().getId() == comboDestino.getValue().getId())
+            throw new IllegalArgumentException("A origem e o destino nao podem ser o mesmo porto.");
+        if (dataChegada.getValue() != null && dataChegada.getValue().isBefore(dataPartida.getValue()))
+            throw new IllegalArgumentException("A data de chegada nao pode ser anterior a de partida.");
     }
 
-    private void preencherViagemDoFormulario(Viagem viagem) {
-        viagem.setNavioId(comboNavio.getValue() != null ? comboNavio.getValue().getId() : 0);
-        viagem.setPortoOrigemId(comboPortoOrigem.getValue() != null ? comboPortoOrigem.getValue().getId() : 0);
-        viagem.setPortoDestinoId(comboPortoDestino.getValue() != null ? comboPortoDestino.getValue().getId() : 0);
-        viagem.setDataPartida(campoDataPartida.getValue());
-        viagem.setDataChegadaPrevista(campoDataChegada.getValue());
+    private String texto(Object o) { return o == null ? "" : o.toString(); }
+
+    private String nomeNavio(int id) {
+        Navio n = naviosPorId.get(id);
+        return n == null ? ("#" + id) : n.getNome();
+    }
+
+    private String nomePorto(int id) {
+        Porto p = portosPorId.get(id);
+        return p == null ? "-" : p.getNome();
     }
 }

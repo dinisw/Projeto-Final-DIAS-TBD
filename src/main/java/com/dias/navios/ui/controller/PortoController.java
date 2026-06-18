@@ -2,16 +2,15 @@ package com.dias.navios.ui.controller;
 
 import com.dias.navios.bll.PortoService;
 import com.dias.navios.model.Porto;
+import com.dias.navios.ui.Dialogs;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 
-import java.util.List;
-
 public class PortoController {
 
-    @FXML private TableView<Porto> tabelaPortos;
+    @FXML private TableView<Porto> tabela;
     @FXML private TableColumn<Porto, String> colNome;
     @FXML private TableColumn<Porto, String> colPais;
     @FXML private TableColumn<Porto, String> colCodigo;
@@ -19,107 +18,92 @@ public class PortoController {
     @FXML private TextField campoNome;
     @FXML private TextField campoPais;
     @FXML private TextField campoCodigo;
-    @FXML private TextField campoPesquisa;
     @FXML private Label labelMensagem;
 
-    private PortoService portoService = new PortoService();
-    private Porto portoSelecionado = null;
+    private final PortoService portoService = new PortoService();
+    private Porto selecionado;   // null => estamos a criar um novo
 
     @FXML
     public void initialize() {
+        // Ligar cada coluna ao atributo correspondente do objeto Porto
         colNome.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getNome()));
         colPais.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getPais()));
         colCodigo.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getCodigo()));
 
-        tabelaPortos.getSelectionModel().selectedItemProperty().addListener((obs, old, novo) -> {
-            if (novo != null) carregarNoFormulario(novo);
-        });
+        // Ao clicar numa linha, carrega os dados no formulario
+        tabela.getSelectionModel().selectedItemProperty()
+                .addListener((obs, antigo, novo) -> preencher(novo));
 
-        carregarTabela();
+        recarregar();
     }
 
-    private void carregarTabela() {
+    private void recarregar() {
         try {
-            List<Porto> portos = portoService.listarPortos();
-            String filtro = campoPesquisa != null ? campoPesquisa.getText().toLowerCase() : "";
-            if (!filtro.isBlank()) {
-                portos.removeIf(p -> !p.getNome().toLowerCase().contains(filtro)
-                        && !p.getCodigo().toLowerCase().contains(filtro)
-                        && !p.getPais().toLowerCase().contains(filtro));
-            }
-            tabelaPortos.setItems(FXCollections.observableArrayList(portos));
+            tabela.setItems(FXCollections.observableArrayList(portoService.listar()));
         } catch (Exception e) {
-            labelMensagem.setText("Erro ao carregar portos: " + e.getMessage());
+            labelMensagem.setText("Erro ao carregar: " + e.getMessage());
         }
     }
 
-    private void carregarNoFormulario(Porto porto) {
-        portoSelecionado = porto;
-        campoNome.setText(porto.getNome());
-        campoPais.setText(porto.getPais());
-        campoCodigo.setText(porto.getCodigo());
-        labelMensagem.setText("Porto carregado para edição.");
+    @FXML
+    public void novo() {
+        tabela.getSelectionModel().clearSelection();
+        selecionado = null;
+        limpar();
+        labelMensagem.setText("A criar um novo porto.");
     }
 
     @FXML
-    public void guardarPorto() {
+    public void guardar() {
         try {
-            Porto porto = portoSelecionado != null ? portoSelecionado : new Porto();
+            Porto porto = (selecionado == null) ? new Porto() : selecionado;
             porto.setNome(campoNome.getText());
             porto.setPais(campoPais.getText());
             porto.setCodigo(campoCodigo.getText());
 
-            if (portoSelecionado != null) {
-                portoService.editarPorto(porto);
-                labelMensagem.setText("Porto actualizado com sucesso.");
+            if (selecionado == null) {
+                portoService.registar(porto);
+                Dialogs.info("Porto criado com sucesso.");
             } else {
-                portoService.registarPorto(porto);
-                labelMensagem.setText("Porto registado com sucesso.");
+                portoService.editar(porto);
+                Dialogs.info("Porto atualizado com sucesso.");
             }
-            portoSelecionado = null;
-            limparFormulario();
-            carregarTabela();
+            novo();
+            recarregar();
         } catch (IllegalArgumentException e) {
-            labelMensagem.setText("Validação: " + e.getMessage());
+            Dialogs.erro(e.getMessage());
         } catch (Exception e) {
-            labelMensagem.setText("Erro: " + e.getMessage());
+            Dialogs.erro("Erro ao guardar: " + e.getMessage());
         }
     }
 
     @FXML
-    public void apagarPorto() {
-        Porto selecionado = tabelaPortos.getSelectionModel().getSelectedItem();
-        if (selecionado == null) {
-            labelMensagem.setText("Seleccione um porto para apagar.");
-            return;
-        }
+    public void apagar() {
+        Porto sel = tabela.getSelectionModel().getSelectedItem();
+        if (sel == null) { Dialogs.erro("Selecione um porto para apagar."); return; }
+        if (!Dialogs.confirmar("Apagar o porto \"" + sel.getNome() + "\"?")) return;
         try {
-            portoService.apagarPorto(selecionado.getId());
-            labelMensagem.setText("Porto apagado.");
-            portoSelecionado = null;
-            limparFormulario();
-            carregarTabela();
+            portoService.apagar(sel.getId());
+            Dialogs.info("Porto apagado.");
+            novo();
+            recarregar();
         } catch (Exception e) {
-            labelMensagem.setText("Erro: " + e.getMessage());
+            Dialogs.erro("Erro ao apagar: " + e.getMessage());
         }
     }
 
-    @FXML
-    public void pesquisar() {
-        carregarTabela();
+    private void preencher(Porto p) {
+        selecionado = p;
+        if (p == null) return;
+        campoNome.setText(p.getNome());
+        campoPais.setText(p.getPais());
+        campoCodigo.setText(p.getCodigo());
+        labelMensagem.setText("A editar: " + p.getNome());
     }
 
-    @FXML
-    public void novoPorto() {
-        portoSelecionado = null;
-        limparFormulario();
-        labelMensagem.setText("Formulário pronto para novo porto.");
-    }
-
-    private void limparFormulario() {
+    private void limpar() {
         campoNome.clear();
         campoPais.clear();
         campoCodigo.clear();
-        tabelaPortos.getSelectionModel().clearSelection();
     }
 }

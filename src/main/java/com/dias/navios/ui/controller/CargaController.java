@@ -5,21 +5,26 @@ import com.dias.navios.bll.PortoService;
 import com.dias.navios.model.Carga;
 import com.dias.navios.model.Porto;
 import com.dias.navios.model.TipoCarga;
+import com.dias.navios.ui.Dialogs;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class CargaController {
 
-    @FXML private TableView<Carga> tabelaCargas;
+    @FXML private TableView<Carga> tabela;
     @FXML private TableColumn<Carga, String> colDesignacao;
     @FXML private TableColumn<Carga, String> colTipo;
     @FXML private TableColumn<Carga, String> colVolume;
     @FXML private TableColumn<Carga, String> colPeso;
+    @FXML private TableColumn<Carga, String> colInflamavel;
+    @FXML private TableColumn<Carga, String> colCarga;
+    @FXML private TableColumn<Carga, String> colDescarga;
 
     @FXML private TextField campoDesignacao;
     @FXML private ComboBox<TipoCarga> comboTipo;
@@ -28,149 +33,138 @@ public class CargaController {
     @FXML private CheckBox checkInflamavel;
     @FXML private CheckBox checkCorrosiva;
     @FXML private CheckBox checkToxica;
-    @FXML private ComboBox<Porto> comboPortoCarregamento;
+    @FXML private ComboBox<Porto> comboPortoCarga;
     @FXML private ComboBox<Porto> comboPortoDescarga;
-    @FXML private TextField campoPesquisa;
     @FXML private Label labelMensagem;
 
-    private CargaService cargaService = new CargaService();
-    private PortoService portoService = new PortoService();
-    private Carga cargaSelecionada = null;
+    private final CargaService cargaService = new CargaService();
+    private final PortoService portoService = new PortoService();
+
+    private Carga selecionado;
+    private final Map<Integer, Porto> portosPorId = new HashMap<>();
 
     @FXML
     public void initialize() {
         colDesignacao.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getDesignacao()));
-        colTipo.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getTipo().name()));
-        colVolume.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getVolume() + " m³"));
-        colPeso.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getPeso() + " ton"));
+        colTipo.setCellValueFactory(c -> new SimpleStringProperty(texto(c.getValue().getTipo())));
+        colVolume.setCellValueFactory(c -> new SimpleStringProperty(String.valueOf(c.getValue().getVolume())));
+        colPeso.setCellValueFactory(c -> new SimpleStringProperty(String.valueOf(c.getValue().getPeso())));
+        colInflamavel.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().isInflamavel() ? "Sim" : "Nao"));
+        colCarga.setCellValueFactory(c -> new SimpleStringProperty(nomePorto(c.getValue().getPortoCarregamentoId())));
+        colDescarga.setCellValueFactory(c -> new SimpleStringProperty(nomePorto(c.getValue().getPortoDescargaId())));
 
         comboTipo.setItems(FXCollections.observableArrayList(TipoCarga.values()));
+        tabela.getSelectionModel().selectedItemProperty()
+                .addListener((obs, antigo, novo) -> preencher(novo));
 
-        tabelaCargas.getSelectionModel().selectedItemProperty().addListener((obs, old, novo) -> {
-            if (novo != null) carregarNoFormulario(novo);
-        });
-
-        carregarPortos();
-        carregarTabela();
+        recarregar();
     }
 
-    private void carregarPortos() {
+    private void recarregar() {
         try {
-            List<Porto> portos = portoService.listarPortos();
-            ObservableList<Porto> obs = FXCollections.observableArrayList(portos);
-            comboPortoCarregamento.setItems(obs);
+            List<Porto> portos = portoService.listar();
+            portosPorId.clear();
+            for (Porto p : portos) portosPorId.put(p.getId(), p);
+            comboPortoCarga.setItems(FXCollections.observableArrayList(portos));
             comboPortoDescarga.setItems(FXCollections.observableArrayList(portos));
+
+            tabela.setItems(FXCollections.observableArrayList(cargaService.listarCargas()));
         } catch (Exception e) {
-            labelMensagem.setText("Erro ao carregar portos: " + e.getMessage());
+            labelMensagem.setText("Erro ao carregar dados: " + e.getMessage());
         }
-    }
-
-    private void carregarTabela() {
-        try {
-            List<Carga> cargas = cargaService.listarCargas();
-            String filtro = campoPesquisa != null ? campoPesquisa.getText().toLowerCase() : "";
-            if (!filtro.isBlank()) {
-                cargas.removeIf(c -> !c.getDesignacao().toLowerCase().contains(filtro));
-            }
-            tabelaCargas.setItems(FXCollections.observableArrayList(cargas));
-        } catch (Exception e) {
-            labelMensagem.setText("Erro ao carregar cargas: " + e.getMessage());
-        }
-    }
-
-    private void carregarNoFormulario(Carga carga) {
-        cargaSelecionada = carga;
-        campoDesignacao.setText(carga.getDesignacao());
-        comboTipo.setValue(carga.getTipo());
-        campoVolume.setText(String.valueOf(carga.getVolume()));
-        campoPeso.setText(String.valueOf(carga.getPeso()));
-        checkInflamavel.setSelected(carga.isInflamavel());
-        checkCorrosiva.setSelected(carga.isCorrosiva());
-        checkToxica.setSelected(carga.isToxica());
-
-        comboPortoCarregamento.getItems().stream()
-            .filter(p -> p.getId() == carga.getPortoCarregamentoId())
-            .findFirst().ifPresent(comboPortoCarregamento::setValue);
-        comboPortoDescarga.getItems().stream()
-            .filter(p -> p.getId() == carga.getPortoDescargaId())
-            .findFirst().ifPresent(comboPortoDescarga::setValue);
-
-        labelMensagem.setText("Carga carregada para edição.");
     }
 
     @FXML
-    public void guardarCarga() {
+    public void novo() {
+        tabela.getSelectionModel().clearSelection();
+        selecionado = null;
+        limpar();
+        labelMensagem.setText("A criar uma nova carga.");
+    }
+
+    @FXML
+    public void guardar() {
         try {
-            Carga carga = cargaSelecionada != null ? cargaSelecionada : new Carga();
+            if (comboTipo.getValue() == null) throw new IllegalArgumentException("Selecione o tipo de carga.");
+
+            Carga carga = (selecionado == null) ? new Carga() : selecionado;
             carga.setDesignacao(campoDesignacao.getText());
             carga.setTipo(comboTipo.getValue());
-            carga.setVolume(Double.parseDouble(campoVolume.getText()));
-            carga.setPeso(Double.parseDouble(campoPeso.getText()));
+            carga.setVolume(parseDouble(campoVolume.getText(), "Volume"));
+            carga.setPeso(parseDouble(campoPeso.getText(), "Peso"));
             carga.setInflamavel(checkInflamavel.isSelected());
             carga.setCorrosiva(checkCorrosiva.isSelected());
             carga.setToxica(checkToxica.isSelected());
-            carga.setPortoCarregamentoId(comboPortoCarregamento.getValue() != null ? comboPortoCarregamento.getValue().getId() : 0);
-            carga.setPortoDescargaId(comboPortoDescarga.getValue() != null ? comboPortoDescarga.getValue().getId() : 0);
+            carga.setPortoCarregamentoId(comboPortoCarga.getValue() == null ? 0 : comboPortoCarga.getValue().getId());
+            carga.setPortoDescargaId(comboPortoDescarga.getValue() == null ? 0 : comboPortoDescarga.getValue().getId());
 
-            if (cargaSelecionada != null) {
-                cargaService.editarCarga(carga);
-                labelMensagem.setText("Carga actualizada com sucesso.");
-            } else {
+            if (selecionado == null) {
                 cargaService.registarCarga(carga);
-                labelMensagem.setText("Carga registada com sucesso.");
+                Dialogs.info("Carga criada com sucesso.");
+            } else {
+                cargaService.editarCarga(carga);
+                Dialogs.info("Carga atualizada com sucesso.");
             }
-            cargaSelecionada = null;
-            limparFormulario();
-            carregarTabela();
+            novo();
+            recarregar();
         } catch (IllegalArgumentException e) {
-            labelMensagem.setText("Validação/Formato: " + e.getMessage());
+            Dialogs.erro(e.getMessage());
         } catch (Exception e) {
-            labelMensagem.setText("Erro: " + e.getMessage());
+            Dialogs.erro("Erro ao guardar: " + e.getMessage());
         }
     }
 
     @FXML
-    public void apagarCarga() {
-        Carga selecionada = tabelaCargas.getSelectionModel().getSelectedItem();
-        if (selecionada == null) {
-            labelMensagem.setText("Seleccione uma carga para apagar.");
-            return;
-        }
+    public void apagar() {
+        Carga sel = tabela.getSelectionModel().getSelectedItem();
+        if (sel == null) { Dialogs.erro("Selecione uma carga para apagar."); return; }
+        if (!Dialogs.confirmar("Apagar a carga \"" + sel.getDesignacao() + "\"?")) return;
         try {
-            cargaService.apagarCarga(selecionada.getId());
-            labelMensagem.setText("Carga apagada.");
-            cargaSelecionada = null;
-            limparFormulario();
-            carregarTabela();
-        } catch (IllegalStateException e) {
-            labelMensagem.setText("Regra de negócio: " + e.getMessage());
+            cargaService.apagarCarga(sel.getId());
+            Dialogs.info("Carga apagada.");
+            novo();
+            recarregar();
         } catch (Exception e) {
-            labelMensagem.setText("Erro: " + e.getMessage());
+            Dialogs.erro("Erro ao apagar: " + e.getMessage());
         }
     }
 
-    @FXML
-    public void pesquisar() {
-        carregarTabela();
+    private void preencher(Carga c) {
+        selecionado = c;
+        if (c == null) return;
+        campoDesignacao.setText(c.getDesignacao());
+        comboTipo.setValue(c.getTipo());
+        campoVolume.setText(String.valueOf(c.getVolume()));
+        campoPeso.setText(String.valueOf(c.getPeso()));
+        checkInflamavel.setSelected(c.isInflamavel());
+        checkCorrosiva.setSelected(c.isCorrosiva());
+        checkToxica.setSelected(c.isToxica());
+        comboPortoCarga.setValue(portosPorId.get(c.getPortoCarregamentoId()));
+        comboPortoDescarga.setValue(portosPorId.get(c.getPortoDescargaId()));
+        labelMensagem.setText("A editar: " + c.getDesignacao());
     }
 
-    @FXML
-    public void novaCarga() {
-        cargaSelecionada = null;
-        limparFormulario();
-        labelMensagem.setText("Formulário pronto para nova carga.");
-    }
-
-    private void limparFormulario() {
+    private void limpar() {
         campoDesignacao.clear();
+        comboTipo.setValue(null);
         campoVolume.clear();
         campoPeso.clear();
-        comboTipo.setValue(null);
         checkInflamavel.setSelected(false);
         checkCorrosiva.setSelected(false);
         checkToxica.setSelected(false);
-        comboPortoCarregamento.setValue(null);
+        comboPortoCarga.setValue(null);
         comboPortoDescarga.setValue(null);
-        tabelaCargas.getSelectionModel().clearSelection();
+    }
+
+    private String texto(Object o) { return o == null ? "" : o.toString(); }
+
+    private String nomePorto(int id) {
+        Porto p = portosPorId.get(id);
+        return p == null ? "-" : p.getNome();
+    }
+
+    private double parseDouble(String s, String campo) {
+        try { return Double.parseDouble(s.trim().replace(",", ".")); }
+        catch (Exception e) { throw new IllegalArgumentException("O campo \"" + campo + "\" deve ser um numero."); }
     }
 }

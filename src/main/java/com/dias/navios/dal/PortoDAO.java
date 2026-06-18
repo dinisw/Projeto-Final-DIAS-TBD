@@ -1,85 +1,46 @@
 package com.dias.navios.dal;
 
+import com.dias.navios.dal.db.DatabaseConnection;
+import com.dias.navios.dal.db.RowMapper;
 import com.dias.navios.model.Porto;
 
-import java.sql.*;
-import java.util.ArrayList;
 import java.util.List;
 
 public class PortoDAO {
 
+    private final DatabaseConnection db = new DatabaseConnection();
+
+    private final RowMapper<Porto> mapper = rs -> new Porto(
+            rs.getInt("id"),
+            rs.getString("nome"),
+            rs.getString("pais"),
+            rs.getString("codigo")
+    );
+
     public void inserir(Porto porto) throws Exception {
         String sql = "INSERT INTO portos (nome, pais, codigo) VALUES (?, ?, ?)";
-        Connection conn = DatabaseConnection.getConnection();
-        PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-        ps.setString(1, porto.getNome());
-        ps.setString(2, porto.getPais());
-        ps.setString(3, porto.getCodigo());
-        ps.executeUpdate();
-        ResultSet keys = ps.getGeneratedKeys();
-        if (keys.next()) {
-            porto.setId(keys.getInt(1));
-        }
-        keys.close();
-        ps.close();
+        int id = db.create(sql,
+                porto.getNome(),
+                porto.getPais(),
+                porto.getCodigo());
+        if (id > 0) porto.setId(id);
     }
 
     public void atualizar(Porto porto) throws Exception {
-        String sql = "UPDATE portos SET nome=?, pais=?, codigo=? WHERE id=?";
-        Connection conn = DatabaseConnection.getConnection();
-        PreparedStatement ps = conn.prepareStatement(sql);
-        ps.setString(1, porto.getNome());
-        ps.setString(2, porto.getPais());
-        ps.setString(3, porto.getCodigo());
-        ps.setInt(4, porto.getId());
-        ps.executeUpdate();
-        ps.close();
+        db.execute("UPDATE portos SET nome=?, pais=?, codigo=? WHERE id=?",
+                porto.getNome(), porto.getPais(), porto.getCodigo(), porto.getId());
     }
 
     public void apagar(int id) throws Exception {
-        String sql = "DELETE FROM portos WHERE id=?";
-        Connection conn = DatabaseConnection.getConnection();
-        PreparedStatement ps = conn.prepareStatement(sql);
-        ps.setInt(1, id);
-        ps.executeUpdate();
-        ps.close();
+        db.execute("DELETE FROM portos WHERE id=?", id);
     }
 
     public Porto buscarPorId(int id) throws Exception {
-        String sql = "SELECT * FROM portos WHERE id=?";
-        Connection conn = DatabaseConnection.getConnection();
-        PreparedStatement ps = conn.prepareStatement(sql);
-        ps.setInt(1, id);
-        ResultSet rs = ps.executeQuery();
-        Porto porto = null;
-        if (rs.next()) {
-            porto = mapearResultSet(rs);
-        }
-        rs.close();
-        ps.close();
-        return porto;
+        List<Porto> resultado = db.select("SELECT * FROM portos WHERE id=?", mapper, id);
+        return resultado.isEmpty() ? null : resultado.get(0);
     }
 
     public List<Porto> listarTodos() throws Exception {
-        List<Porto> lista = new ArrayList<>();
-        String sql = "SELECT * FROM portos ORDER BY nome";
-        Connection conn = DatabaseConnection.getConnection();
-        Statement st = conn.createStatement();
-        ResultSet rs = st.executeQuery(sql);
-        while (rs.next()) {
-            lista.add(mapearResultSet(rs));
-        }
-        rs.close();
-        st.close();
-        return lista;
-    }
-
-    Porto mapearResultSet(ResultSet rs) throws SQLException {
-        Porto porto = new Porto();
-        porto.setId(rs.getInt("id"));
-        porto.setNome(rs.getString("nome"));
-        porto.setPais(rs.getString("pais"));
-        porto.setCodigo(rs.getString("codigo"));
-        return porto;
+        return db.select("SELECT * FROM portos", mapper);
     }
 }

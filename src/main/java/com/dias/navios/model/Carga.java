@@ -13,7 +13,8 @@ public class Carga {
     private int portoCarregamentoId; // FK para Porto
     private int portoDescargaId;     // FK para Porto
 
-    public Carga() {}
+    public Carga() {
+    }
 
     public Carga(int id, String designacao, TipoCarga tipo, double volume, double peso,
                  boolean inflamavel, boolean corrosiva, boolean toxica,
@@ -30,35 +31,85 @@ public class Carga {
         this.portoDescargaId = portoDescargaId;
     }
 
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
+    public int getId() {
+        return id;
+    }
 
-    public String getDesignacao() { return designacao; }
-    public void setDesignacao(String designacao) { this.designacao = designacao; }
+    public void setId(int id) {
+        this.id = id;
+    }
 
-    public TipoCarga getTipo() { return tipo; }
-    public void setTipo(TipoCarga tipo) { this.tipo = tipo; }
+    public String getDesignacao() {
+        return designacao;
+    }
 
-    public double getVolume() { return volume; }
-    public void setVolume(double volume) { this.volume = volume; }
+    public void setDesignacao(String designacao) {
+        this.designacao = designacao;
+    }
 
-    public double getPeso() { return peso; }
-    public void setPeso(double peso) { this.peso = peso; }
+    public TipoCarga getTipo() {
+        return tipo;
+    }
 
-    public boolean isInflamavel() { return inflamavel; }
-    public void setInflamavel(boolean inflamavel) { this.inflamavel = inflamavel; }
+    public void setTipo(TipoCarga tipo) {
+        this.tipo = tipo;
+    }
 
-    public boolean isCorrosiva() { return corrosiva; }
-    public void setCorrosiva(boolean corrosiva) { this.corrosiva = corrosiva; }
+    public double getVolume() {
+        return volume;
+    }
 
-    public boolean isToxica() { return toxica; }
-    public void setToxica(boolean toxica) { this.toxica = toxica; }
+    public void setVolume(double volume) {
+        this.volume = volume;
+    }
 
-    public int getPortoCarregamentoId() { return portoCarregamentoId; }
-    public void setPortoCarregamentoId(int portoCarregamentoId) { this.portoCarregamentoId = portoCarregamentoId; }
+    public double getPeso() {
+        return peso;
+    }
 
-    public int getPortoDescargaId() { return portoDescargaId; }
-    public void setPortoDescargaId(int portoDescargaId) { this.portoDescargaId = portoDescargaId; }
+    public void setPeso(double peso) {
+        this.peso = peso;
+    }
+
+    public boolean isInflamavel() {
+        return inflamavel;
+    }
+
+    public void setInflamavel(boolean inflamavel) {
+        this.inflamavel = inflamavel;
+    }
+
+    public boolean isCorrosiva() {
+        return corrosiva;
+    }
+
+    public void setCorrosiva(boolean corrosiva) {
+        this.corrosiva = corrosiva;
+    }
+
+    public boolean isToxica() {
+        return toxica;
+    }
+
+    public void setToxica(boolean toxica) {
+        this.toxica = toxica;
+    }
+
+    public int getPortoCarregamentoId() {
+        return portoCarregamentoId;
+    }
+
+    public void setPortoCarregamentoId(int portoCarregamentoId) {
+        this.portoCarregamentoId = portoCarregamentoId;
+    }
+
+    public int getPortoDescargaId() {
+        return portoDescargaId;
+    }
+
+    public void setPortoDescargaId(int portoDescargaId) {
+        this.portoDescargaId = portoDescargaId;
+    }
 
     @Override
     public String toString() {

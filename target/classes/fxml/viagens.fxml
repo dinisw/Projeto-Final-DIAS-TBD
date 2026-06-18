@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.text.Font?>
+
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.dias.navios.ui.controller.ViagemController"
+      spacing="12">
+    <padding><Insets top="16" right="16" bottom="16" left="16"/></padding>
+
+    <Label text="Gestao de Viagens">
+        <font><Font size="16.0"/></font>
+    </Label>
+
+    <TableView fx:id="tabela" VBox.vgrow="ALWAYS">
+        <columns>
+            <TableColumn fx:id="colId"      text="ID"        prefWidth="50"/>
+            <TableColumn fx:id="colNavio"   text="Navio"     prefWidth="150"/>
+            <TableColumn fx:id="colOrigem"  text="Origem"    prefWidth="120"/>
+            <TableColumn fx:id="colDestino" text="Destino"   prefWidth="120"/>
+            <TableColumn fx:id="colPartida" text="Partida"   prefWidth="100"/>
+            <TableColumn fx:id="colChegada" text="Chegada"   prefWidth="100"/>
+            <TableColumn fx:id="colEstado"  text="Estado"    prefWidth="110"/>
+        </columns>
+    </TableView>
+
+    <GridPane hgap="10" vgap="8">
+        <Label text="Navio:"               GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+        <ComboBox fx:id="comboNavio"       GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+        <Label text="Porto de origem:"     GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+        <ComboBox fx:id="comboOrigem"      GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+        <Label text="Porto de destino:"    GridPane.rowIndex="1" GridPane.columnIndex="2"/>
+        <ComboBox fx:id="comboDestino"     GridPane.rowIndex="1" GridPane.columnIndex="3"/>
+
+        <Label text="Data de partida:"     GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+        <DatePicker fx:id="dataPartida"    GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+        <Label text="Chegada prevista:"    GridPane.rowIndex="2" GridPane.columnIndex="2"/>
+        <DatePicker fx:id="dataChegada"    GridPane.rowIndex="2" GridPane.columnIndex="3"/>
+    </GridPane>
+
+    <HBox spacing="10">
+        <Button text="Nova"           onAction="#novo"/>
+        <Button text="Criar Viagem"   onAction="#criarViagem"/>
+        <Button text="Avancar Estado" onAction="#avancarEstado"/>
+        <Button text="Cancelar"       onAction="#cancelarViagem"/>
+    </HBox>
+
+    <Label fx:id="labelMensagem"/>
+</VBox>
