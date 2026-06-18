@@ -38,6 +38,25 @@ public class ViagemService {
         viagemDAO.inserir(viagem);
     }
 
+    public void atualizarViagem(Viagem viagem) throws Exception {
+        Viagem atual = viagemDAO.buscarPorId(viagem.getId());
+        if (atual == null) {
+            throw new IllegalArgumentException("Viagem não encontrada.");
+        }
+        if (atual.getEstado() != EstadoViagem.PLANEADA) {
+            throw new IllegalStateException("Só é possível editar viagens no estado PLANEADA.");
+        }
+        if (viagem.getPortoOrigemId() == viagem.getPortoDestinoId()) {
+            throw new IllegalArgumentException("A origem e o destino não podem ser o mesmo porto.");
+        }
+        if (viagem.getDataChegadaPrevista() != null && viagem.getDataPartida() != null
+                && viagem.getDataChegadaPrevista().isBefore(viagem.getDataPartida())) {
+            throw new IllegalArgumentException("A data de chegada não pode ser anterior à de partida.");
+        }
+        viagem.setEstado(atual.getEstado());
+        viagemDAO.atualizar(viagem);
+    }
+
     public void avancarEstado(int viagemId) throws Exception {
         Viagem viagem = viagemDAO.buscarPorId(viagemId);
         EstadoViagem estadoAtual = viagem.getEstado();

@@ -72,8 +72,8 @@ public class DatabaseConnection {
         return null;
     }
 
-    /** Fecha a ligacao (chamada no fim de cada operacao). */
-    private void disconnect() {
+    /** Fecha a ligacao. Chamar quando a aplicacao termina. */
+    public void disconnect() {
         try {
             if (connection != null && !connection.isClosed()) {
                 connection.close();
@@ -84,78 +84,59 @@ public class DatabaseConnection {
     }
 
     // ── SELECT ────────────────────────────────────────────────────────────────
-    public <T> ArrayList<T> select(String sql, RowMapper<T> mapper, Object... params) {
+    public <T> ArrayList<T> select(String sql, RowMapper<T> mapper, Object... params) throws Exception {
         ArrayList<T> results = new ArrayList<>();
-        try {
-            Connection conn = connect();
-            if (conn == null) return results;
-            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                bind(stmt, params);
-                try (ResultSet rs = stmt.executeQuery()) {
-                    while (rs.next()) {
-                        results.add(mapper.mapRow(rs));
-                    }
+        Connection conn = connect();
+        if (conn == null) throw new Exception("Não foi possível ligar à base de dados.");
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            bind(stmt, params);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    results.add(mapper.mapRow(rs));
                 }
             }
-        } catch (Exception ex) {
-            System.err.println("Erro ao executar SELECT: " + ex.getMessage());
-        } finally {
-            disconnect();
         }
         return results;
     }
 
     // ── INSERT (devolve a chave gerada) ───────────────────────────────────────
-    public int create(String sql, Object... params) {
-        int generatedId = 0;
-        try {
-            Connection conn = connect();
-            if (conn == null) return 0;
-            conn.setAutoCommit(false);
-            try (PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-                bind(stmt, params);
-                stmt.executeUpdate();
-                try (ResultSet keys = stmt.getGeneratedKeys()) {
-                    if (keys.next()) generatedId = keys.getInt(1);
-                }
-                conn.commit();
-            } catch (SQLException e) {
-                conn.rollback();
-                System.err.println("Erro ao executar INSERT (rollback efetuado): " + e.getMessage());
-            } finally {
-                conn.setAutoCommit(true);
+    public int create(String sql, Object... params) throws Exception {
+        Connection conn = connect();
+        if (conn == null) throw new Exception("Não foi possível ligar à base de dados.");
+        conn.setAutoCommit(false);
+        try (PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            bind(stmt, params);
+            stmt.executeUpdate();
+            int generatedId = 0;
+            try (ResultSet keys = stmt.getGeneratedKeys()) {
+                if (keys.next()) generatedId = keys.getInt(1);
             }
-        } catch (Exception ex) {
-            System.err.println("Erro de ligacao: " + ex.getMessage());
+            conn.commit();
+            return generatedId;
+        } catch (SQLException e) {
+            conn.rollback();
+            throw e;
         } finally {
-            disconnect();
+            conn.setAutoCommit(true);
         }
-        return generatedId;
     }
 
     // ── UPDATE / DELETE (devolve o nr de linhas afetadas) ─────────────────────
-    public int execute(String sql, Object... params) {
-        int rowsAffected = 0;
-        try {
-            Connection conn = connect();
-            if (conn == null) return 0;
-            conn.setAutoCommit(false);
-            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                bind(stmt, params);
-                rowsAffected = stmt.executeUpdate();
-                conn.commit();
-            } catch (SQLException e) {
-                conn.rollback();
-                System.err.println("Erro ao executar UPDATE/DELETE (rollback efetuado): " + e.getMessage());
-            } finally {
-                conn.setAutoCommit(true);
-            }
-        } catch (Exception ex) {
-            System.err.println("Erro de ligacao: " + ex.getMessage());
+    public int execute(String sql, Object... params) throws Exception {
+        Connection conn = connect();
+        if (conn == null) throw new Exception("Não foi possível ligar à base de dados.");
+        conn.setAutoCommit(false);
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            bind(stmt, params);
+            int rowsAffected = stmt.executeUpdate();
+            conn.commit();
+            return rowsAffected;
+        } catch (SQLException e) {
+            conn.rollback();
+            throw e;
         } finally {
-            disconnect();
+            conn.setAutoCommit(true);
         }
-        return rowsAffected;
     }
 
     /** Preenche os parametros (?) do PreparedStatement pela ordem dada. */
