@@ -31,8 +31,7 @@ class TripulanteServiceTest {
         tripulanteValido.setNome("João Silva");
         tripulanteValido.setNumeroCertificado("CERT-2024-001");
         tripulanteValido.setFuncao(FuncaoTripulante.CAPITAO);
-        tripulanteValido.setDisponivel(true);
-        tripulanteValido.setNacionalidade("Portuguesa");
+        tripulanteValido.setEstadoDisponibilidade("DISPONIVEL");
     }
 
     // ─── registarTripulante ───────────────────────────────────────────────────

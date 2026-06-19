@@ -18,7 +18,7 @@ public class PortoDAO {
     );
 
     public void inserir(Porto porto) throws Exception {
-        String sql = "INSERT INTO portos (nome, pais, codigo) VALUES (?, ?, ?)";
+        String sql = "INSERT INTO Porto (nome, pais, codigo) VALUES (?, ?, ?)";
         int id = db.create(sql,
                 porto.getNome(),
                 porto.getPais(),
@@ -27,20 +27,20 @@ public class PortoDAO {
     }
 
     public void atualizar(Porto porto) throws Exception {
-        db.execute("UPDATE portos SET nome=?, pais=?, codigo=? WHERE id=?",
+        db.execute("UPDATE Porto SET nome=?, pais=?, codigo=? WHERE id=?",
                 porto.getNome(), porto.getPais(), porto.getCodigo(), porto.getId());
     }
 
     public void apagar(int id) throws Exception {
-        db.execute("DELETE FROM portos WHERE id=?", id);
+        db.execute("DELETE FROM Porto WHERE id=?", id);
     }
 
     public Porto buscarPorId(int id) throws Exception {
-        List<Porto> resultado = db.select("SELECT * FROM portos WHERE id=?", mapper, id);
+        List<Porto> resultado = db.select("SELECT * FROM Porto WHERE id=?", mapper, id);
         return resultado.isEmpty() ? null : resultado.get(0);
     }
 
     public List<Porto> listarTodos() throws Exception {
-        return db.select("SELECT * FROM portos", mapper);
+        return db.select("SELECT * FROM Porto", mapper);
     }
 }

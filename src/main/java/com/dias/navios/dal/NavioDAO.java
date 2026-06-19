@@ -12,62 +12,85 @@ public class NavioDAO {
 
     private final DatabaseConnection db = new DatabaseConnection();
 
-    // Converte uma linha da tabela "navios" num objeto Navio
+    private static final String SELECT_BASE =
+            "SELECT n.id, n.nome, n.codigoIMO, tn.nome AS tipoNavio, n.capacidadeMaxima, " +
+            "n.numCompartimentos, n.bandeira, n.anoFabrico, n.estadoOperacional, n.portoAtualId " +
+            "FROM Navio n JOIN TipoNavio tn ON tn.id = n.tipoNavioId";
+
     private final RowMapper<Navio> mapper = rs -> new Navio(
             rs.getInt("id"),
             rs.getString("nome"),
-            rs.getString("codigo_imo"),
-            TipoNavio.valueOf(rs.getString("tipo")),
-            rs.getDouble("capacidade_maxima"),
-            rs.getInt("num_tanques"),
+            rs.getString("codigoIMO"),
+            TipoNavio.valueOf(rs.getString("tipoNavio")),
+            rs.getDouble("capacidadeMaxima"),
+            rs.getInt("numCompartimentos"),
             rs.getString("bandeira"),
-            rs.getInt("ano_fabrico"),
-            EstadoNavio.valueOf(rs.getString("estado")),
-            rs.getInt("porto_atual_id")
+            rs.getInt("anoFabrico"),
+            EstadoNavio.valueOf(rs.getString("estadoOperacional")),
+            rs.getInt("portoAtualId")
     );
 
+    private int buscarIdTipoNavio(TipoNavio tipo) throws Exception {
+        List<Integer> result = db.select(
+                "SELECT id FROM TipoNavio WHERE nome=?",
+                rs -> rs.getInt("id"),
+                tipo.name());
+        if (result.isEmpty()) throw new IllegalArgumentException("TipoNavio não encontrado: " + tipo);
+        return result.get(0);
+    }
+
+    public int buscarMaxCargasDoTipo(int navioId) throws Exception {
+        List<Integer> result = db.select(
+                "SELECT tn.maxCargas FROM Navio n JOIN TipoNavio tn ON tn.id = n.tipoNavioId WHERE n.id=?",
+                rs -> rs.getInt("maxCargas"),
+                navioId);
+        return result.isEmpty() ? 0 : result.get(0);
+    }
+
     public void inserir(Navio navio) throws Exception {
-        String sql = "INSERT INTO navios (nome, codigo_imo, tipo, capacidade_maxima, num_tanques, " +
-                "bandeira, ano_fabrico, estado, porto_atual_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        int tipoId = buscarIdTipoNavio(navio.getTipo());
+        String sql = "INSERT INTO Navio (nome, codigoIMO, tipoNavioId, capacidadeMaxima, numCompartimentos, " +
+                "bandeira, anoFabrico, estadoOperacional, portoAtualId) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         int id = db.create(sql,
                 navio.getNome(),
                 navio.getCodigoIMO(),
-                navio.getTipo() == null ? null : navio.getTipo().name(),
+                tipoId,
                 navio.getCapacidadeMaxima(),
                 navio.getNumTanques(),
                 navio.getBandeira(),
                 navio.getAnoFabrico(),
-                navio.getEstado() == null ? null : navio.getEstado().name(),
-                navio.getPortoAtualId());
+                navio.getEstado() == null ? "ATIVO" : navio.getEstado().name(),
+                navio.getPortoAtualId() == 0 ? null : navio.getPortoAtualId());
         if (id > 0) navio.setId(id);
     }
 
     public void atualizar(Navio navio) throws Exception {
-        String sql = "UPDATE navios SET nome=?, codigo_imo=?, tipo=?, capacidade_maxima=?, num_tanques=?, " +
-                "bandeira=?, ano_fabrico=?, estado=?, porto_atual_id=? WHERE id=?";
+        int tipoId = buscarIdTipoNavio(navio.getTipo());
+        String sql = "UPDATE Navio SET nome=?, codigoIMO=?, tipoNavioId=?, capacidadeMaxima=?, " +
+                "numCompartimentos=?, bandeira=?, anoFabrico=?, estadoOperacional=?, portoAtualId=? WHERE id=?";
         db.execute(sql,
                 navio.getNome(),
                 navio.getCodigoIMO(),
-                navio.getTipo() == null ? null : navio.getTipo().name(),
+                tipoId,
                 navio.getCapacidadeMaxima(),
                 navio.getNumTanques(),
                 navio.getBandeira(),
                 navio.getAnoFabrico(),
-                navio.getEstado() == null ? null : navio.getEstado().name(),
-                navio.getPortoAtualId(),
+                navio.getEstado() == null ? "ATIVO" : navio.getEstado().name(),
+                navio.getPortoAtualId() == 0 ? null : navio.getPortoAtualId(),
                 navio.getId());
     }
 
     public void apagar(int id) throws Exception {
-        db.execute("DELETE FROM navios WHERE id=?", id);
+        db.execute("DELETE FROM Navio WHERE id=?", id);
     }
 
     public Navio buscarPorId(int id) throws Exception {
-        List<Navio> resultado = db.select("SELECT * FROM navios WHERE id=?", mapper, id);
+        List<Navio> resultado = db.select(SELECT_BASE + " WHERE n.id=?", mapper, id);
         return resultado.isEmpty() ? null : resultado.get(0);
     }
 
     public List<Navio> listarTodos() throws Exception {
-        return db.select("SELECT * FROM navios", mapper);
+        return db.select(SELECT_BASE, mapper);
     }
 }

@@ -89,7 +89,7 @@ public class ViagemController {
         colTripNome.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getNome()));
         colTripFuncao.setCellValueFactory(c -> new SimpleStringProperty(texto(c.getValue().getFuncao())));
         colTripCertificado.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getNumeroCertificado()));
-        colTripDisponivel.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().isDisponivel() ? "Sim" : "Não"));
+        colTripDisponivel.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getEstadoDisponibilidade()));
 
         // conversor para mostrar nome nas ComboBox
         comboCarga.setConverter(new StringConverter<>() {

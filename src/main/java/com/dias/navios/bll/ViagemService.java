@@ -2,6 +2,7 @@ package com.dias.navios.bll;
 
 import com.dias.navios.dal.CargaDAO;
 import com.dias.navios.dal.NavioDAO;
+import com.dias.navios.dal.TripulanteDAO;
 import com.dias.navios.dal.ViagemDAO;
 import com.dias.navios.model.*;
 
@@ -9,9 +10,10 @@ import java.util.List;
 
 public class ViagemService {
 
-    private ViagemDAO viagemDAO = new ViagemDAO();
-    private NavioDAO  navioDAO  = new NavioDAO();
-    private CargaDAO  cargaDAO  = new CargaDAO();
+    private ViagemDAO      viagemDAO      = new ViagemDAO();
+    private NavioDAO       navioDAO       = new NavioDAO();
+    private CargaDAO       cargaDAO       = new CargaDAO();
+    private TripulanteDAO  tripulanteDAO  = new TripulanteDAO();
 
     // ─── Criar viagem ─────────────────────────────────────────────────────────
 
@@ -51,45 +53,71 @@ public class ViagemService {
 
     public void avancarEstado(int viagemId) throws Exception {
         Viagem viagem = viagemDAO.buscarPorId(viagemId);
+        if (viagem == null) throw new IllegalArgumentException("Viagem não encontrada.");
+
         EstadoViagem novoEstado;
         switch (viagem.getEstado()) {
-            case PLANEADA:  novoEstado = EstadoViagem.EM_CURSO;  break;
-            case EM_CURSO:  novoEstado = EstadoViagem.CONCLUIDA; break;
+            case PLANEADA:
+                if (!viagemDAO.viagemTemCapitao(viagemId)) {
+                    throw new IllegalStateException("Não é possível iniciar a viagem sem um Capitão atribuído.");
+                }
+                if (viagemDAO.contarCargasDaViagem(viagemId) == 0) {
+                    throw new IllegalStateException("Não é possível iniciar a viagem sem cargas associadas.");
+                }
+                novoEstado = EstadoViagem.EM_CURSO;
+                break;
+            case EM_CURSO:
+                novoEstado = EstadoViagem.CONCLUIDA;
+                break;
             default:
                 throw new IllegalStateException("Não é possível avançar o estado desta viagem.");
         }
         viagemDAO.atualizarEstado(viagemId, novoEstado);
+        if (novoEstado == EstadoViagem.CONCLUIDA) {
+            viagemDAO.libertarTripulantes(viagemId);
+        }
     }
 
     public void cancelarViagem(int viagemId) throws Exception {
         Viagem viagem = viagemDAO.buscarPorId(viagemId);
+        if (viagem == null) throw new IllegalArgumentException("Viagem não encontrada.");
         if (viagem.getEstado() == EstadoViagem.CONCLUIDA ||
             viagem.getEstado() == EstadoViagem.CANCELADA) {
             throw new IllegalStateException("Não é possível cancelar uma viagem " +
                     viagem.getEstado().name().toLowerCase() + ".");
         }
         viagemDAO.atualizarEstado(viagemId, EstadoViagem.CANCELADA);
+        viagemDAO.libertarTripulantes(viagemId);
     }
 
     // ─── Associação de cargas ─────────────────────────────────────────────────
 
     public void associarCarga(int viagemId, int cargaId) throws Exception {
         Viagem viagem = viagemDAO.buscarPorId(viagemId);
+        if (viagem == null) throw new IllegalArgumentException("Viagem não encontrada.");
         if (viagem.getEstado() != EstadoViagem.PLANEADA) {
             throw new IllegalStateException("Só é possível adicionar cargas a viagens PLANEADAS.");
         }
 
-        Navio navio = navioDAO.buscarPorId(viagem.getNavioId());
-        Carga carga = cargaDAO.buscarPorId(cargaId);
-
-        if (viagem.getCargasIds().contains(cargaId)) {
+        if (viagemDAO.cargaJaAssociada(viagemId, cargaId)) {
             throw new IllegalStateException("Esta carga já está associada à viagem.");
         }
+
+        Navio navio = navioDAO.buscarPorId(viagem.getNavioId());
+        Carga carga = cargaDAO.buscarPorId(cargaId);
+        if (carga == null) throw new IllegalArgumentException("Carga não encontrada.");
 
         if (!navio.getTipo().aceitaCarga(carga.getTipo())) {
             throw new IllegalStateException(
                     "Carga incompatível: navio do tipo " + navio.getTipo() +
                     " não aceita carga do tipo " + carga.getTipo() + ".");
+        }
+
+        int maxCargas = navioDAO.buscarMaxCargasDoTipo(navio.getId());
+        int numCargas = viagemDAO.contarCargasDaViagem(viagemId);
+        if (numCargas >= maxCargas) {
+            throw new IllegalStateException(
+                    "Número máximo de cargas (" + maxCargas + ") atingido para este tipo de navio.");
         }
 
         List<Carga> cargasExistentes = viagemDAO.listarCargasDaViagem(viagemId);
@@ -105,6 +133,7 @@ public class ViagemService {
 
     public void removerCarga(int viagemId, int cargaId) throws Exception {
         Viagem viagem = viagemDAO.buscarPorId(viagemId);
+        if (viagem == null) throw new IllegalArgumentException("Viagem não encontrada.");
         if (viagem.getEstado() != EstadoViagem.PLANEADA) {
             throw new IllegalStateException("Só é possível remover cargas de viagens PLANEADAS.");
         }
@@ -115,17 +144,33 @@ public class ViagemService {
 
     public void associarTripulante(int viagemId, int tripulanteId) throws Exception {
         Viagem viagem = viagemDAO.buscarPorId(viagemId);
+        if (viagem == null) throw new IllegalArgumentException("Viagem não encontrada.");
         if (viagem.getEstado() != EstadoViagem.PLANEADA) {
             throw new IllegalStateException("Só é possível adicionar tripulantes a viagens PLANEADAS.");
         }
-        if (viagem.getTripulantesIds().contains(tripulanteId)) {
+
+        if (viagemDAO.tripulanteJaAssociado(viagemId, tripulanteId)) {
             throw new IllegalStateException("Este tripulante já está associado à viagem.");
         }
-        viagemDAO.adicionarTripulante(viagemId, tripulanteId);
+
+        Tripulante t = tripulanteDAO.buscarPorId(tripulanteId);
+        if (t == null) throw new IllegalArgumentException("Tripulante não encontrado.");
+        if (!"DISPONIVEL".equals(t.getEstadoDisponibilidade())) {
+            throw new IllegalStateException("O tripulante não está disponível (estado: " +
+                    t.getEstadoDisponibilidade() + ").");
+        }
+
+        String funcaoNaViagem = t.getFuncao() == null ? "OPERADOR" : t.getFuncao().name();
+        viagemDAO.adicionarTripulante(viagemId, tripulanteId, funcaoNaViagem);
+
+        // Marcar tripulante como em viagem
+        t.setEstadoDisponibilidade("EM_VIAGEM");
+        tripulanteDAO.atualizar(t);
     }
 
     public void removerTripulante(int viagemId, int tripulanteId) throws Exception {
         Viagem viagem = viagemDAO.buscarPorId(viagemId);
+        if (viagem == null) throw new IllegalArgumentException("Viagem não encontrada.");
         if (viagem.getEstado() != EstadoViagem.PLANEADA) {
             throw new IllegalStateException("Só é possível remover tripulantes de viagens PLANEADAS.");
         }

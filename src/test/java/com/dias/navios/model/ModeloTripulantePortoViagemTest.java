@@ -16,23 +16,27 @@ class ModeloTripulantePortoViagemTest {
     @DisplayName("Tripulante — construtor completo e getters")
     void tripulanteConstrutorCompleto() {
         Tripulante t = new Tripulante(1, "João Silva", "CERT-001",
-                FuncaoTripulante.CAPITAO, true, "Portuguesa");
+                FuncaoTripulante.CAPITAO, "DISPONIVEL",
+                LocalDate.of(1985, 3, 15), "joao@example.com");
         assertEquals(1, t.getId());
         assertEquals("João Silva", t.getNome());
         assertEquals("CERT-001", t.getNumeroCertificado());
         assertEquals(FuncaoTripulante.CAPITAO, t.getFuncao());
-        assertTrue(t.isDisponivel());
-        assertEquals("Portuguesa", t.getNacionalidade());
+        assertEquals("DISPONIVEL", t.getEstadoDisponibilidade());
+        assertEquals("joao@example.com", t.getEmail());
+        assertEquals(LocalDate.of(1985, 3, 15), t.getDataNascimento());
     }
 
     @Test
-    @DisplayName("Tripulante — disponibilidade pode ser alterada")
+    @DisplayName("Tripulante — estado de disponibilidade pode ser alterado")
     void tripulanteDisponibilidadeAlteravel() {
         Tripulante t = new Tripulante();
-        t.setDisponivel(true);
-        assertTrue(t.isDisponivel());
-        t.setDisponivel(false);
-        assertFalse(t.isDisponivel());
+        t.setEstadoDisponibilidade("DISPONIVEL");
+        assertEquals("DISPONIVEL", t.getEstadoDisponibilidade());
+        t.setEstadoDisponibilidade("EM_VIAGEM");
+        assertEquals("EM_VIAGEM", t.getEstadoDisponibilidade());
+        t.setEstadoDisponibilidade("INDISPONIVEL");
+        assertEquals("INDISPONIVEL", t.getEstadoDisponibilidade());
     }
 
     @Test

@@ -29,7 +29,7 @@ class CargaFactoryTest {
     @DisplayName("criarProdutoQuimico — tipo correto, corrosivo e tóxico")
     void criarProdutoQuimicoCorreto() {
         Carga c = CargaFactory.criarProdutoQuimico("Soda Cáustica", 5_000, 6_000, 3, 4);
-        assertEquals(TipoCarga.PRODUTO_QUIMICO, c.getTipo());
+        assertEquals(TipoCarga.QUIMICOS, c.getTipo());
         assertEquals("Soda Cáustica", c.getDesignacao());
         assertFalse(c.isInflamavel());
         assertTrue(c.isCorrosiva());
@@ -59,17 +59,17 @@ class CargaFactoryTest {
     void petroleoCompatívelComNavioCrude() {
         Carga c = CargaFactory.criarPetroleo("Crude", 1000, 800, 1, 2);
         assertTrue(com.dias.navios.model.TipoNavio.CRUDE.aceitaCarga(c.getTipo()));
-        assertFalse(com.dias.navios.model.TipoNavio.REFINADO.aceitaCarga(c.getTipo()));
+        assertFalse(com.dias.navios.model.TipoNavio.REFINADOS.aceitaCarga(c.getTipo()));
         assertFalse(com.dias.navios.model.TipoNavio.QUIMICO.aceitaCarga(c.getTipo()));
     }
 
     @Test
-    @DisplayName("Produto químico não é compatível com navio CRUDE nem REFINADO")
-    void produtoQuimicoIncompativelComCrudeERefinado() {
+    @DisplayName("Produto químico não é compatível com navio CRUDE nem REFINADOS")
+    void produtoQuimicoIncompativelComCrudeERefinados() {
         Carga c = CargaFactory.criarProdutoQuimico("Químico", 1000, 900, 1, 2);
         assertFalse(com.dias.navios.model.TipoNavio.CRUDE.aceitaCarga(c.getTipo()));
-        assertFalse(com.dias.navios.model.TipoNavio.REFINADO.aceitaCarga(c.getTipo()));
+        assertFalse(com.dias.navios.model.TipoNavio.REFINADOS.aceitaCarga(c.getTipo()));
         assertTrue(com.dias.navios.model.TipoNavio.QUIMICO.aceitaCarga(c.getTipo()));
-        assertTrue(com.dias.navios.model.TipoNavio.QUIMICO_PRODUTO.aceitaCarga(c.getTipo()));
+        assertTrue(com.dias.navios.model.TipoNavio.QUIMICO_PRODUTOS.aceitaCarga(c.getTipo()));
     }
 }

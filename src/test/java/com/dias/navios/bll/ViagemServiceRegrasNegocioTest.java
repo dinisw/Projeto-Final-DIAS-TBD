@@ -2,6 +2,7 @@ package com.dias.navios.bll;
 
 import com.dias.navios.dal.CargaDAO;
 import com.dias.navios.dal.NavioDAO;
+import com.dias.navios.dal.TripulanteDAO;
 import com.dias.navios.dal.ViagemDAO;
 import com.dias.navios.model.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,7 +14,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -24,9 +24,10 @@ import static org.mockito.Mockito.*;
 @DisplayName("ViagemService — regras de negócio (com mocks de DAO)")
 class ViagemServiceRegrasNegocioTest {
 
-    @Mock ViagemDAO viagemDAO;
-    @Mock NavioDAO  navioDAO;
-    @Mock CargaDAO  cargaDAO;
+    @Mock ViagemDAO     viagemDAO;
+    @Mock NavioDAO      navioDAO;
+    @Mock CargaDAO      cargaDAO;
+    @Mock TripulanteDAO tripulanteDAO;
     @InjectMocks ViagemService viagemService;
 
     private Viagem viagemBase;
@@ -64,9 +65,9 @@ class ViagemServiceRegrasNegocioTest {
     }
 
     @Test
-    @DisplayName("Navio EM_MANUTENCAO não pode iniciar viagem")
+    @DisplayName("Navio MANUTENCAO não pode iniciar viagem")
     void navioEmManutencaoRejeitaCriarViagem() throws Exception {
-        when(navioDAO.buscarPorId(1)).thenReturn(navio(EstadoNavio.EM_MANUTENCAO));
+        when(navioDAO.buscarPorId(1)).thenReturn(navio(EstadoNavio.MANUTENCAO));
 
         assertThrows(IllegalStateException.class, () -> viagemService.criarViagem(viagemBase));
         verify(viagemDAO, never()).inserir(any());
@@ -101,10 +102,33 @@ class ViagemServiceRegrasNegocioTest {
     @DisplayName("PLANEADA → EM_CURSO é uma transição válida")
     void planeadaAvancaParaEmCurso() throws Exception {
         when(viagemDAO.buscarPorId(1)).thenReturn(viagem(1, EstadoViagem.PLANEADA));
+        when(viagemDAO.viagemTemCapitao(1)).thenReturn(true);
+        when(viagemDAO.contarCargasDaViagem(1)).thenReturn(1);
 
         viagemService.avancarEstado(1);
 
         verify(viagemDAO).atualizarEstado(1, EstadoViagem.EM_CURSO);
+    }
+
+    @Test
+    @DisplayName("PLANEADA sem Capitão não pode avançar")
+    void planeadaSemCapitaoNaoPodeAvancar() throws Exception {
+        when(viagemDAO.buscarPorId(1)).thenReturn(viagem(1, EstadoViagem.PLANEADA));
+        when(viagemDAO.viagemTemCapitao(1)).thenReturn(false);
+
+        assertThrows(IllegalStateException.class, () -> viagemService.avancarEstado(1));
+        verify(viagemDAO, never()).atualizarEstado(anyInt(), any());
+    }
+
+    @Test
+    @DisplayName("PLANEADA sem cargas não pode avançar")
+    void planeadaSemCargasNaoPodeAvancar() throws Exception {
+        when(viagemDAO.buscarPorId(1)).thenReturn(viagem(1, EstadoViagem.PLANEADA));
+        when(viagemDAO.viagemTemCapitao(1)).thenReturn(true);
+        when(viagemDAO.contarCargasDaViagem(1)).thenReturn(0);
+
+        assertThrows(IllegalStateException.class, () -> viagemService.avancarEstado(1));
+        verify(viagemDAO, never()).atualizarEstado(anyInt(), any());
     }
 
     @Test
@@ -193,6 +217,8 @@ class ViagemServiceRegrasNegocioTest {
         when(viagemDAO.buscarPorId(1)).thenReturn(v);
         when(navioDAO.buscarPorId(1)).thenReturn(n);
         when(cargaDAO.buscarPorId(1)).thenReturn(c);
+        when(navioDAO.buscarMaxCargasDoTipo(1)).thenReturn(4);
+        when(viagemDAO.contarCargasDaViagem(1)).thenReturn(0);
         when(viagemDAO.listarCargasDaViagem(1)).thenReturn(Collections.emptyList());
 
         assertDoesNotThrow(() -> viagemService.associarCarga(1, 1));
@@ -206,7 +232,7 @@ class ViagemServiceRegrasNegocioTest {
         Navio n = navio(EstadoNavio.ATIVO);
         n.setTipo(TipoNavio.CRUDE);
         n.setCapacidadeMaxima(50_000);
-        Carga c = carga(TipoCarga.PRODUTO_QUIMICO, 1_000); // CRUDE não aceita QUIMICO
+        Carga c = carga(TipoCarga.QUIMICOS, 1_000);
 
         when(viagemDAO.buscarPorId(1)).thenReturn(v);
         when(navioDAO.buscarPorId(1)).thenReturn(n);
@@ -224,15 +250,15 @@ class ViagemServiceRegrasNegocioTest {
         n.setTipo(TipoNavio.CRUDE);
         n.setCapacidadeMaxima(50_000);
 
-        // Já tem 45 000 ton carregadas
         Carga existente = carga(TipoCarga.PETROLEO_BRUTO, 45_000);
-        // Nova carga de 10 000 ton → 55 000 > 50 000
         Carga nova = carga(TipoCarga.PETROLEO_BRUTO, 10_000);
         nova.setId(2);
 
         when(viagemDAO.buscarPorId(1)).thenReturn(v);
         when(navioDAO.buscarPorId(1)).thenReturn(n);
         when(cargaDAO.buscarPorId(2)).thenReturn(nova);
+        when(navioDAO.buscarMaxCargasDoTipo(1)).thenReturn(4);
+        when(viagemDAO.contarCargasDaViagem(1)).thenReturn(0);
         when(viagemDAO.listarCargasDaViagem(1)).thenReturn(List.of(existente));
 
         assertThrows(IllegalStateException.class, () -> viagemService.associarCarga(1, 2));
@@ -248,12 +274,14 @@ class ViagemServiceRegrasNegocioTest {
         n.setCapacidadeMaxima(50_000);
 
         Carga existente = carga(TipoCarga.PETROLEO_BRUTO, 40_000);
-        Carga nova = carga(TipoCarga.PETROLEO_BRUTO, 10_000); // 40 000 + 10 000 = 50 000 == limite
+        Carga nova = carga(TipoCarga.PETROLEO_BRUTO, 10_000);
         nova.setId(2);
 
         when(viagemDAO.buscarPorId(1)).thenReturn(v);
         when(navioDAO.buscarPorId(1)).thenReturn(n);
         when(cargaDAO.buscarPorId(2)).thenReturn(nova);
+        when(navioDAO.buscarMaxCargasDoTipo(1)).thenReturn(4);
+        when(viagemDAO.contarCargasDaViagem(1)).thenReturn(0);
         when(viagemDAO.listarCargasDaViagem(1)).thenReturn(List.of(existente));
 
         assertDoesNotThrow(() -> viagemService.associarCarga(1, 2));
@@ -263,17 +291,8 @@ class ViagemServiceRegrasNegocioTest {
     @Test
     @DisplayName("Carga já associada à viagem é rejeitada")
     void cargaJaAssociadaEhRejeitada() throws Exception {
-        Viagem v = viagem(1, EstadoViagem.PLANEADA);
-        v.getCargasIds().add(1); // carga 1 já está na viagem
-
-        Navio n = navio(EstadoNavio.ATIVO);
-        n.setTipo(TipoNavio.CRUDE);
-        n.setCapacidadeMaxima(50_000);
-        Carga c = carga(TipoCarga.PETROLEO_BRUTO, 1_000);
-
-        when(viagemDAO.buscarPorId(1)).thenReturn(v);
-        when(navioDAO.buscarPorId(1)).thenReturn(n);
-        when(cargaDAO.buscarPorId(1)).thenReturn(c);
+        when(viagemDAO.buscarPorId(1)).thenReturn(viagem(1, EstadoViagem.PLANEADA));
+        when(viagemDAO.cargaJaAssociada(1, 1)).thenReturn(true);
 
         assertThrows(IllegalStateException.class, () -> viagemService.associarCarga(1, 1));
         verify(viagemDAO, never()).adicionarCarga(anyInt(), anyInt());
@@ -326,22 +345,26 @@ class ViagemServiceRegrasNegocioTest {
     @Test
     @DisplayName("Tripulante pode ser associado a viagem PLANEADA")
     void tripulantePodeSerAssociadoAViagemPlaneada() throws Exception {
+        Tripulante t = new Tripulante();
+        t.setId(1);
+        t.setFuncao(FuncaoTripulante.CAPITAO);
+        t.setEstadoDisponibilidade("DISPONIVEL");
+
         when(viagemDAO.buscarPorId(1)).thenReturn(viagem(1, EstadoViagem.PLANEADA));
+        when(tripulanteDAO.buscarPorId(1)).thenReturn(t);
 
         assertDoesNotThrow(() -> viagemService.associarTripulante(1, 1));
-        verify(viagemDAO).adicionarTripulante(1, 1);
+        verify(viagemDAO).adicionarTripulante(1, 1, "CAPITAO");
     }
 
     @Test
     @DisplayName("Tripulante já associado à viagem é rejeitado")
     void tripulanteJaAssociadoEhRejeitado() throws Exception {
-        Viagem v = viagem(1, EstadoViagem.PLANEADA);
-        v.getTripulantesIds().add(1);
-
-        when(viagemDAO.buscarPorId(1)).thenReturn(v);
+        when(viagemDAO.buscarPorId(1)).thenReturn(viagem(1, EstadoViagem.PLANEADA));
+        when(viagemDAO.tripulanteJaAssociado(1, 1)).thenReturn(true);
 
         assertThrows(IllegalStateException.class, () -> viagemService.associarTripulante(1, 1));
-        verify(viagemDAO, never()).adicionarTripulante(anyInt(), anyInt());
+        verify(viagemDAO, never()).adicionarTripulante(anyInt(), anyInt(), anyString());
     }
 
     @Test
@@ -350,7 +373,7 @@ class ViagemServiceRegrasNegocioTest {
         when(viagemDAO.buscarPorId(1)).thenReturn(viagem(1, EstadoViagem.CONCLUIDA));
 
         assertThrows(IllegalStateException.class, () -> viagemService.associarTripulante(1, 1));
-        verify(viagemDAO, never()).adicionarTripulante(anyInt(), anyInt());
+        verify(viagemDAO, never()).adicionarTripulante(anyInt(), anyInt(), anyString());
     }
 
     @Test

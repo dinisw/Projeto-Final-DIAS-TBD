@@ -7,10 +7,6 @@ import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
-/**
- * Aplicação JavaFX principal.
- * Não tem método main — o único entry point é Launcher.main().
- */
 public class MainApp extends Application {
 
     @Override

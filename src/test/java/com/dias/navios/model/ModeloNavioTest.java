@@ -47,7 +47,7 @@ class ModeloNavioTest {
         n.setNumTanques(8);
         n.setBandeira("Espanha");
         n.setAnoFabrico(2015);
-        n.setEstado(EstadoNavio.EM_MANUTENCAO);
+        n.setEstado(EstadoNavio.MANUTENCAO);
         n.setPortoAtualId(3);
 
         assertEquals("Aurora", n.getNome());
@@ -57,7 +57,7 @@ class ModeloNavioTest {
         assertEquals(8, n.getNumTanques());
         assertEquals("Espanha", n.getBandeira());
         assertEquals(2015, n.getAnoFabrico());
-        assertEquals(EstadoNavio.EM_MANUTENCAO, n.getEstado());
+        assertEquals(EstadoNavio.MANUTENCAO, n.getEstado());
         assertEquals(3, n.getPortoAtualId());
     }
 
@@ -77,7 +77,7 @@ class ModeloNavioTest {
         EstadoNavio[] estados = EstadoNavio.values();
         assertEquals(3, estados.length);
         assertArrayEquals(new EstadoNavio[]{
-                EstadoNavio.ATIVO, EstadoNavio.EM_MANUTENCAO, EstadoNavio.INATIVO
+                EstadoNavio.ATIVO, EstadoNavio.MANUTENCAO, EstadoNavio.INATIVO
         }, estados);
     }
 
@@ -87,7 +87,7 @@ class ModeloNavioTest {
         TipoNavio[] tipos = TipoNavio.values();
         assertEquals(4, tipos.length);
         assertArrayEquals(new TipoNavio[]{
-                TipoNavio.CRUDE, TipoNavio.REFINADO, TipoNavio.QUIMICO, TipoNavio.QUIMICO_PRODUTO
+                TipoNavio.CRUDE, TipoNavio.REFINADOS, TipoNavio.QUIMICO, TipoNavio.QUIMICO_PRODUTOS
         }, tipos);
     }
 }

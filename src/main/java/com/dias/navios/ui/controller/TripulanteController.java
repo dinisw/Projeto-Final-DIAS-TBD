@@ -10,6 +10,7 @@ import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 public class TripulanteController {
@@ -18,14 +19,14 @@ public class TripulanteController {
     @FXML private TableColumn<Tripulante, String> colNome;
     @FXML private TableColumn<Tripulante, String> colCertificado;
     @FXML private TableColumn<Tripulante, String> colFuncao;
-    @FXML private TableColumn<Tripulante, String> colDisponivel;
-    @FXML private TableColumn<Tripulante, String> colNacionalidade;
+    @FXML private TableColumn<Tripulante, String> colEstado;
+    @FXML private TableColumn<Tripulante, String> colEmail;
 
     @FXML private TextField campoNome;
     @FXML private TextField campoCertificado;
     @FXML private ComboBox<FuncaoTripulante> comboFuncao;
-    @FXML private CheckBox checkDisponivel;
-    @FXML private TextField campoNacionalidade;
+    @FXML private TextField campoEmail;
+    @FXML private DatePicker campoDataNascimento;
     @FXML private Label labelMensagem;
 
     private final TripulanteService tripulanteService = new TripulanteService();
@@ -36,8 +37,8 @@ public class TripulanteController {
         colNome.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getNome()));
         colCertificado.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getNumeroCertificado()));
         colFuncao.setCellValueFactory(c -> new SimpleStringProperty(texto(c.getValue().getFuncao())));
-        colDisponivel.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().isDisponivel() ? "Sim" : "Não"));
-        colNacionalidade.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getNacionalidade()));
+        colEstado.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getEstadoDisponibilidade()));
+        colEmail.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getEmail()));
 
         comboFuncao.setItems(FXCollections.observableArrayList(FuncaoTripulante.values()));
         tabela.getSelectionModel().selectedItemProperty()
@@ -76,13 +77,20 @@ public class TripulanteController {
         try {
             if (comboFuncao.getValue() == null)
                 throw new IllegalArgumentException("Selecione a função do tripulante.");
+            if (campoEmail.getText().isBlank())
+                throw new IllegalArgumentException("O email é obrigatório.");
+            if (campoDataNascimento.getValue() == null)
+                throw new IllegalArgumentException("A data de nascimento é obrigatória.");
 
             final Tripulante t = (selecionado == null) ? new Tripulante() : selecionado;
             t.setNome(campoNome.getText());
             t.setNumeroCertificado(campoCertificado.getText());
             t.setFuncao(comboFuncao.getValue());
-            t.setDisponivel(checkDisponivel.isSelected());
-            t.setNacionalidade(campoNacionalidade.getText());
+            t.setEmail(campoEmail.getText());
+            t.setDataNascimento(campoDataNascimento.getValue());
+            if (t.getEstadoDisponibilidade() == null) {
+                t.setEstadoDisponibilidade("DISPONIVEL");
+            }
 
             final boolean isNovo = (selecionado == null);
             Thread th = new Thread(() -> {
@@ -136,17 +144,17 @@ public class TripulanteController {
         campoNome.setText(t.getNome());
         campoCertificado.setText(t.getNumeroCertificado());
         comboFuncao.setValue(t.getFuncao());
-        checkDisponivel.setSelected(t.isDisponivel());
-        campoNacionalidade.setText(t.getNacionalidade());
-        labelMensagem.setText("A editar: " + t.getNome());
+        campoEmail.setText(t.getEmail());
+        campoDataNascimento.setValue(t.getDataNascimento());
+        labelMensagem.setText("A editar: " + t.getNome() + " [" + t.getEstadoDisponibilidade() + "]");
     }
 
     private void limpar() {
         campoNome.clear();
         campoCertificado.clear();
         comboFuncao.setValue(null);
-        checkDisponivel.setSelected(false);
-        campoNacionalidade.clear();
+        campoEmail.clear();
+        campoDataNascimento.setValue(null);
     }
 
     private String texto(Object o) { return o == null ? "" : o.toString(); }

@@ -2,23 +2,22 @@ package com.dias.navios.model;
 
 public enum TipoNavio {
     CRUDE,
-    REFINADO,
+    REFINADOS,
     QUIMICO,
-    QUIMICO_PRODUTO;
+    QUIMICO_PRODUTOS;
 
     public boolean aceitaCarga(TipoCarga tipoCarga) {
         switch (this) {
             case CRUDE:
                 return tipoCarga == TipoCarga.PETROLEO_BRUTO;
-            case REFINADO:
+            case REFINADOS:
                 return tipoCarga == TipoCarga.GASOLINA || tipoCarga == TipoCarga.DIESEL
                         || tipoCarga == TipoCarga.JET_FUEL || tipoCarga == TipoCarga.FUELOLEO;
             case QUIMICO:
-                return tipoCarga == TipoCarga.PRODUTO_QUIMICO;
-            case QUIMICO_PRODUTO:
-                return tipoCarga == TipoCarga.GASOLINA || tipoCarga == TipoCarga.DIESEL
-                        || tipoCarga == TipoCarga.JET_FUEL || tipoCarga == TipoCarga.FUELOLEO
-                        || tipoCarga == TipoCarga.PRODUTO_QUIMICO;
+                return tipoCarga == TipoCarga.QUIMICOS;
+            case QUIMICO_PRODUTOS:
+                return tipoCarga == TipoCarga.QUIMICOS || tipoCarga == TipoCarga.GASOLINA
+                        || tipoCarga == TipoCarga.DIESEL || tipoCarga == TipoCarga.JET_FUEL;
             default:
                 return false;
         }
@@ -26,11 +25,11 @@ public enum TipoNavio {
 
     public String descricaoCompativel() {
         switch (this) {
-            case CRUDE:          return "Petróleo Bruto";
-            case REFINADO:       return "Gasolina, Diesel, Jet Fuel, Fuel Óleo";
-            case QUIMICO:        return "Produto Químico";
-            case QUIMICO_PRODUTO: return "Gasolina, Diesel, Jet Fuel, Fuel Óleo, Produto Químico";
-            default:             return "";
+            case CRUDE:           return "Petróleo Bruto";
+            case REFINADOS:       return "Gasolina, Diesel, Jet Fuel, Fuel Óleo";
+            case QUIMICO:         return "Químicos";
+            case QUIMICO_PRODUTOS: return "Químicos, Gasolina, Diesel, Jet Fuel";
+            default:              return "";
         }
     }
 }

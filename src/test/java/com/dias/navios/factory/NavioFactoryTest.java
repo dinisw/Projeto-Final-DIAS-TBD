@@ -33,10 +33,10 @@ class NavioFactoryTest {
     }
 
     @Test
-    @DisplayName("criarNavioRefinado devolve navio do tipo REFINADO ativo")
+    @DisplayName("criarNavioRefinado devolve navio do tipo REFINADOS ativo")
     void criarNavioRefinadoCorreto() {
         Navio n = NavioFactory.criarNavioRefinado(NOME, IMO, CAP, TAN, BAND, ANO);
-        assertEquals(TipoNavio.REFINADO, n.getTipo());
+        assertEquals(TipoNavio.REFINADOS, n.getTipo());
         assertEquals(EstadoNavio.ATIVO, n.getEstado());
     }
 
@@ -49,10 +49,10 @@ class NavioFactoryTest {
     }
 
     @Test
-    @DisplayName("criarNavioQuimicoProduto devolve navio do tipo QUIMICO_PRODUTO ativo")
+    @DisplayName("criarNavioQuimicoProduto devolve navio do tipo QUIMICO_PRODUTOS ativo")
     void criarNavioQuimicoProdutoCorreto() {
         Navio n = NavioFactory.criarNavioQuimicoProduto(NOME, IMO, CAP, TAN, BAND, ANO);
-        assertEquals(TipoNavio.QUIMICO_PRODUTO, n.getTipo());
+        assertEquals(TipoNavio.QUIMICO_PRODUTOS, n.getTipo());
         assertEquals(EstadoNavio.ATIVO, n.getEstado());
     }
 
@@ -74,8 +74,8 @@ class NavioFactoryTest {
 
         assertTrue(crude.getTipo().aceitaCarga(com.dias.navios.model.TipoCarga.PETROLEO_BRUTO));
         assertTrue(refinado.getTipo().aceitaCarga(com.dias.navios.model.TipoCarga.GASOLINA));
-        assertTrue(quimico.getTipo().aceitaCarga(com.dias.navios.model.TipoCarga.PRODUTO_QUIMICO));
+        assertTrue(quimico.getTipo().aceitaCarga(com.dias.navios.model.TipoCarga.QUIMICOS));
         assertTrue(hibrido.getTipo().aceitaCarga(com.dias.navios.model.TipoCarga.GASOLINA));
-        assertTrue(hibrido.getTipo().aceitaCarga(com.dias.navios.model.TipoCarga.PRODUTO_QUIMICO));
+        assertTrue(hibrido.getTipo().aceitaCarga(com.dias.navios.model.TipoCarga.QUIMICOS));
     }
 }

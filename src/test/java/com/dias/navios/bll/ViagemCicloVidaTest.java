@@ -2,6 +2,7 @@ package com.dias.navios.bll;
 
 import com.dias.navios.dal.CargaDAO;
 import com.dias.navios.dal.NavioDAO;
+import com.dias.navios.dal.TripulanteDAO;
 import com.dias.navios.dal.ViagemDAO;
 import com.dias.navios.model.*;
 import org.junit.jupiter.api.*;
@@ -17,18 +18,14 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-/**
- * Testa o ciclo de vida completo de uma viagem:
- * PLANEADA → associar carga/tripulante → EM_CURSO → CONCLUIDA
- * e cenários de cancelamento e rejeição.
- */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("ViagemService — ciclo de vida completo de uma viagem")
 class ViagemCicloVidaTest {
 
-    @Mock ViagemDAO viagemDAO;
-    @Mock NavioDAO  navioDAO;
-    @Mock CargaDAO  cargaDAO;
+    @Mock ViagemDAO     viagemDAO;
+    @Mock NavioDAO      navioDAO;
+    @Mock CargaDAO      cargaDAO;
+    @Mock TripulanteDAO tripulanteDAO;
     @InjectMocks ViagemService viagemService;
 
     private Navio navioAtivo;
@@ -76,7 +73,7 @@ class ViagemCicloVidaTest {
         Navio navio2 = new Navio();
         navio2.setId(2);
         navio2.setEstado(EstadoNavio.ATIVO);
-        navio2.setTipo(TipoNavio.REFINADO);
+        navio2.setTipo(TipoNavio.REFINADOS);
         navio2.setCapacidadeMaxima(50_000);
 
         Viagem v1 = viagem(1, 1, 10, 20);
@@ -104,6 +101,8 @@ class ViagemCicloVidaTest {
         when(viagemDAO.buscarPorId(1)).thenReturn(viagemPlaneada);
         when(navioDAO.buscarPorId(1)).thenReturn(navioAtivo);
         when(cargaDAO.buscarPorId(5)).thenReturn(carga);
+        when(navioDAO.buscarMaxCargasDoTipo(1)).thenReturn(4);
+        when(viagemDAO.contarCargasDaViagem(1)).thenReturn(0);
         when(viagemDAO.listarCargasDaViagem(1)).thenReturn(Collections.emptyList());
 
         assertDoesNotThrow(() -> viagemService.associarCarga(1, 5));
@@ -113,15 +112,15 @@ class ViagemCicloVidaTest {
     @Test
     @DisplayName("Cenário 2b: Segunda carga acumula peso — recusada quando excede capacidade")
     void segundaCargaExcedeCapacidade() throws Exception {
-        // Já tem 80 000 ton
         Carga existente = carga(TipoCarga.PETROLEO_BRUTO, 80_000);
-        // Nova de 30 000 ton → 80 000 + 30 000 = 110 000 > 100 000
         Carga nova = carga(TipoCarga.PETROLEO_BRUTO, 30_000);
         nova.setId(9);
 
         when(viagemDAO.buscarPorId(1)).thenReturn(viagemPlaneada);
         when(navioDAO.buscarPorId(1)).thenReturn(navioAtivo);
         when(cargaDAO.buscarPorId(9)).thenReturn(nova);
+        when(navioDAO.buscarMaxCargasDoTipo(1)).thenReturn(4);
+        when(viagemDAO.contarCargasDaViagem(1)).thenReturn(0);
         when(viagemDAO.listarCargasDaViagem(1)).thenReturn(List.of(existente));
 
         assertThrows(IllegalStateException.class, () -> viagemService.associarCarga(1, 9));
@@ -131,7 +130,7 @@ class ViagemCicloVidaTest {
     @Test
     @DisplayName("Cenário 2c: Carga incompatível com navio CRUDE é recusada")
     void cargaQuimicaRecusadaPorNavioCrude() throws Exception {
-        Carga quimica = carga(TipoCarga.PRODUTO_QUIMICO, 5_000);
+        Carga quimica = carga(TipoCarga.QUIMICOS, 5_000);
         quimica.setId(7);
 
         when(viagemDAO.buscarPorId(1)).thenReturn(viagemPlaneada);
@@ -148,20 +147,26 @@ class ViagemCicloVidaTest {
     @Test
     @DisplayName("Cenário 3a: Associar tripulante a viagem PLANEADA")
     void associarTripulanteAViagemPlaneada() throws Exception {
+        Tripulante t = new Tripulante();
+        t.setId(42);
+        t.setFuncao(FuncaoTripulante.CAPITAO);
+        t.setEstadoDisponibilidade("DISPONIVEL");
+
         when(viagemDAO.buscarPorId(1)).thenReturn(viagemPlaneada);
+        when(tripulanteDAO.buscarPorId(42)).thenReturn(t);
 
         assertDoesNotThrow(() -> viagemService.associarTripulante(1, 42));
-        verify(viagemDAO).adicionarTripulante(1, 42);
+        verify(viagemDAO).adicionarTripulante(1, 42, "CAPITAO");
     }
 
     @Test
     @DisplayName("Cenário 3b: Mesmo tripulante não pode ser associado duas vezes")
     void tripulanteDuplicadoEhRejeitado() throws Exception {
-        viagemPlaneada.getTripulantesIds().add(42);
         when(viagemDAO.buscarPorId(1)).thenReturn(viagemPlaneada);
+        when(viagemDAO.tripulanteJaAssociado(1, 42)).thenReturn(true);
 
         assertThrows(IllegalStateException.class, () -> viagemService.associarTripulante(1, 42));
-        verify(viagemDAO, never()).adicionarTripulante(anyInt(), anyInt());
+        verify(viagemDAO, never()).adicionarTripulante(anyInt(), anyInt(), anyString());
     }
 
     // =========================================================================
@@ -172,6 +177,8 @@ class ViagemCicloVidaTest {
     @DisplayName("Cenário 4a: PLANEADA → EM_CURSO (avançar estado)")
     void planeadaAvancaParaEmCurso() throws Exception {
         when(viagemDAO.buscarPorId(1)).thenReturn(viagemPlaneada);
+        when(viagemDAO.viagemTemCapitao(1)).thenReturn(true);
+        when(viagemDAO.contarCargasDaViagem(1)).thenReturn(1);
 
         viagemService.avancarEstado(1);
 
@@ -252,7 +259,7 @@ class ViagemCicloVidaTest {
         edicao.setId(1);
         edicao.setNavioId(1);
         edicao.setPortoOrigemId(10);
-        edicao.setPortoDestinoId(99); // novo destino
+        edicao.setPortoDestinoId(99);
         edicao.setDataPartida(LocalDate.of(2025, 10, 1));
 
         assertDoesNotThrow(() -> viagemService.editarViagem(edicao));

@@ -64,12 +64,11 @@ class ModeloCargaTest {
     void tipoCargaTemSeisTipos() {
         TipoCarga[] tipos = TipoCarga.values();
         assertEquals(6, tipos.length);
-        // Verifica cada tipo do enunciado
         assertNotNull(TipoCarga.PETROLEO_BRUTO);
         assertNotNull(TipoCarga.GASOLINA);
         assertNotNull(TipoCarga.DIESEL);
         assertNotNull(TipoCarga.JET_FUEL);
         assertNotNull(TipoCarga.FUELOLEO);
-        assertNotNull(TipoCarga.PRODUTO_QUIMICO);
+        assertNotNull(TipoCarga.QUIMICOS);
     }
 }

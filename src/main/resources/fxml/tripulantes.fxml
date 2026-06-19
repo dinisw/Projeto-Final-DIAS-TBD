@@ -15,11 +15,11 @@
 
     <TableView fx:id="tabela" VBox.vgrow="ALWAYS">
         <columns>
-            <TableColumn fx:id="colNome"          text="Nome"          prefWidth="180"/>
-            <TableColumn fx:id="colCertificado"   text="Certificado"   prefWidth="130"/>
-            <TableColumn fx:id="colFuncao"        text="Funcao"        prefWidth="120"/>
-            <TableColumn fx:id="colDisponivel"    text="Disponivel"    prefWidth="90"/>
-            <TableColumn fx:id="colNacionalidade" text="Nacionalidade" prefWidth="130"/>
+            <TableColumn fx:id="colNome"        text="Nome"        prefWidth="180"/>
+            <TableColumn fx:id="colCertificado" text="Certificado" prefWidth="130"/>
+            <TableColumn fx:id="colFuncao"      text="Funcao"      prefWidth="120"/>
+            <TableColumn fx:id="colEstado"      text="Estado"      prefWidth="120"/>
+            <TableColumn fx:id="colEmail"       text="Email"       prefWidth="200"/>
         </columns>
     </TableView>
 
@@ -31,11 +31,11 @@
 
         <Label text="Funcao:"                GridPane.rowIndex="1" GridPane.columnIndex="0"/>
         <ComboBox fx:id="comboFuncao"        GridPane.rowIndex="1" GridPane.columnIndex="1"/>
-        <Label text="Nacionalidade:"         GridPane.rowIndex="1" GridPane.columnIndex="2"/>
-        <TextField fx:id="campoNacionalidade" GridPane.rowIndex="1" GridPane.columnIndex="3"/>
+        <Label text="Email:"                 GridPane.rowIndex="1" GridPane.columnIndex="2"/>
+        <TextField fx:id="campoEmail"        GridPane.rowIndex="1" GridPane.columnIndex="3"/>
 
-        <Label text="Estado:"                GridPane.rowIndex="2" GridPane.columnIndex="0"/>
-        <CheckBox fx:id="checkDisponivel" text="Disponivel" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+        <Label text="Data Nascimento:"       GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+        <DatePicker fx:id="campoDataNascimento" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
     </GridPane>
 
     <HBox spacing="10">
