@@ -38,20 +38,50 @@ public class DatabaseConnection {
         this.password     = dotenv.get("DB_PASSWORD");
     }
 
-    /** Abre (ou reutiliza) a ligacao cifrada a base de dados. */
+    /** Abre (ou reutiliza) a ligacao cifrada a base de dados.
+     *  Retenta automaticamente se o Azure SQL estiver a acordar (erro 40613). */
     private Connection connect() {
-        try {
-            if (connection == null || connection.isClosed()) {
+        int maxAttempts = 6;
+        int waitSeconds = 10;
+
+        for (int attempt = 1; attempt <= maxAttempts; attempt++) {
+            try {
+                if (connection != null && !connection.isClosed()) {
+                    return connection;
+                }
                 Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
                 String url = "jdbc:sqlserver://" + serverName +
                         ";databaseName=" + databaseName +
-                        ";encrypt=true;trustServerCertificate=true;loginTimeout=15";
+                        ";encrypt=true;trustServerCertificate=true;loginTimeout=60";
                 connection = DriverManager.getConnection(url, username, password);
+                return connection;
+            } catch (SQLException ex) {
+                boolean isAutoPause = ex.getErrorCode() == 40613
+                        || (ex.getMessage() != null && ex.getMessage().contains("not currently available"));
+                if (isAutoPause && attempt < maxAttempts) {
+                    System.out.println("BD a acordar, a aguardar " + waitSeconds
+                            + "s (tentativa " + attempt + "/" + maxAttempts + ")...");
+                    try { Thread.sleep(waitSeconds * 1000L); }
+                    catch (InterruptedException ie) { Thread.currentThread().interrupt(); }
+                } else {
+                    System.err.println("Ligacao a base de dados falhou: " + ex.getMessage());
+                    return null;
+                }
+            } catch (Exception ex) {
+                System.err.println("Ligacao a base de dados falhou: " + ex.getMessage());
+                return null;
             }
-            return connection;
+        }
+        return null;
+    }
+
+    /** Faz um SELECT 1 para acordar a BD sem bloquear a UI. */
+    public void warmUp() {
+        try {
+            select("SELECT 1", rs -> rs.getInt(1));
+            System.out.println("BD pronta.");
         } catch (Exception ex) {
-            System.err.println("Ligacao a base de dados falhou: " + ex.getMessage());
-            return null;
+            // falha silenciosa — o primeiro acesso real vai retentar
         }
     }
 

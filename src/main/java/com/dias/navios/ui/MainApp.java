@@ -1,5 +1,6 @@
 package com.dias.navios.ui;
 
+import com.dias.navios.dal.db.DatabaseConnection;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -14,6 +15,11 @@ public class MainApp extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
+        // Acorda a BD em background enquanto a UI carrega
+        Thread warmUp = new Thread(() -> new DatabaseConnection().warmUp());
+        warmUp.setDaemon(true);
+        warmUp.start();
+
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/main.fxml"));
         BorderPane root = loader.load();
 
