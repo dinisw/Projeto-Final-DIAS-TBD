@@ -1,7 +1,10 @@
 com/dias/navios/dal/TripulanteDAO.class
 com/dias/navios/dal/CargaDAO.class
 com/dias/navios/ui/controller/PortoController.class
+com/dias/navios/ui/controller/ViagemController$4.class
 com/dias/navios/bll/TripulanteService.class
+com/dias/navios/ui/controller/ViagemController$3.class
+com/dias/navios/ui/controller/ViagemController$1.class
 com/dias/navios/model/Tripulante.class
 com/dias/navios/bll/CargaService.class
 com/dias/navios/factory/CargaFactory.class
@@ -11,3 +14,4 @@ com/dias/navios/factory/NavioFactory.class
 com/dias/navios/ui/controller/ViagemController.class
 com/dias/navios/ui/controller/MainController.class
 com/dias/navios/ui/controller/TripulanteController.class
+com/dias/navios/ui/controller/ViagemController$2.class

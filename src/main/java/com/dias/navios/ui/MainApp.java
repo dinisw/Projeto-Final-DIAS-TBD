@@ -6,23 +6,21 @@ import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
-public class MainApp {
+/**
+ * Aplicação JavaFX principal.
+ * Não tem método main — o único entry point é Launcher.main().
+ */
+public class MainApp extends Application {
 
-    public static void main(String[] args) {
-        Application.launch(JavaFxApp.class, args);
-    }
+    @Override
+    public void start(Stage primaryStage) throws Exception {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/main.fxml"));
+        BorderPane root = loader.load();
 
-    public static class JavaFxApp extends Application {
-        @Override
-        public void start(Stage primaryStage) throws Exception {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/main.fxml"));
-            BorderPane root = loader.load();
+        Scene scene = new Scene(root, 1100, 720);
 
-            Scene scene = new Scene(root, 1024, 680);
-
-            primaryStage.setTitle("Sistema de Gestao de Navios Petroleiros");
-            primaryStage.setScene(scene);
-            primaryStage.show();
-        }
+        primaryStage.setTitle("Sistema de Gestão de Navios Petroleiros");
+        primaryStage.setScene(scene);
+        primaryStage.show();
     }
 }
