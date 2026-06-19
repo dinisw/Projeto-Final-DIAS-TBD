@@ -6,46 +6,110 @@
 
 <VBox xmlns:fx="http://javafx.com/fxml"
       fx:controller="com.dias.navios.ui.controller.ViagemController"
-      spacing="12">
-    <padding><Insets top="16" right="16" bottom="16" left="16"/></padding>
+      spacing="8">
+    <padding><Insets top="12" right="12" bottom="12" left="12"/></padding>
 
-    <Label text="Gestao de Viagens">
+    <Label text="Gestão de Viagens">
         <font><Font size="16.0"/></font>
     </Label>
 
-    <TableView fx:id="tabela" VBox.vgrow="ALWAYS">
+    <!-- Tabela principal de viagens -->
+    <TableView fx:id="tabela" VBox.vgrow="ALWAYS" prefHeight="200">
         <columns>
-            <TableColumn fx:id="colId"      text="ID"        prefWidth="50"/>
+            <TableColumn fx:id="colId"      text="ID"        prefWidth="45"/>
             <TableColumn fx:id="colNavio"   text="Navio"     prefWidth="150"/>
             <TableColumn fx:id="colOrigem"  text="Origem"    prefWidth="120"/>
             <TableColumn fx:id="colDestino" text="Destino"   prefWidth="120"/>
-            <TableColumn fx:id="colPartida" text="Partida"   prefWidth="100"/>
-            <TableColumn fx:id="colChegada" text="Chegada"   prefWidth="100"/>
+            <TableColumn fx:id="colPartida" text="Partida"   prefWidth="95"/>
+            <TableColumn fx:id="colChegada" text="Chegada"   prefWidth="95"/>
             <TableColumn fx:id="colEstado"  text="Estado"    prefWidth="110"/>
         </columns>
     </TableView>
 
-    <GridPane hgap="10" vgap="8">
-        <Label text="Navio:"               GridPane.rowIndex="0" GridPane.columnIndex="0"/>
-        <ComboBox fx:id="comboNavio"       GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+    <!-- Formulário criar/editar viagem -->
+    <TitledPane text="Dados da Viagem" collapsible="false">
+        <VBox spacing="6">
+            <padding><Insets top="8" right="8" bottom="8" left="8"/></padding>
 
-        <Label text="Porto de origem:"     GridPane.rowIndex="1" GridPane.columnIndex="0"/>
-        <ComboBox fx:id="comboOrigem"      GridPane.rowIndex="1" GridPane.columnIndex="1"/>
-        <Label text="Porto de destino:"    GridPane.rowIndex="1" GridPane.columnIndex="2"/>
-        <ComboBox fx:id="comboDestino"     GridPane.rowIndex="1" GridPane.columnIndex="3"/>
+            <GridPane hgap="10" vgap="6">
+                <Label text="Navio:"            GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                <ComboBox fx:id="comboNavio"    GridPane.rowIndex="0" GridPane.columnIndex="1" prefWidth="180"/>
 
-        <Label text="Data de partida:"     GridPane.rowIndex="2" GridPane.columnIndex="0"/>
-        <DatePicker fx:id="dataPartida"    GridPane.rowIndex="2" GridPane.columnIndex="1"/>
-        <Label text="Chegada prevista:"    GridPane.rowIndex="2" GridPane.columnIndex="2"/>
-        <DatePicker fx:id="dataChegada"    GridPane.rowIndex="2" GridPane.columnIndex="3"/>
-    </GridPane>
+                <Label text="Porto de origem:"  GridPane.rowIndex="0" GridPane.columnIndex="2"/>
+                <ComboBox fx:id="comboOrigem"   GridPane.rowIndex="0" GridPane.columnIndex="3" prefWidth="160"/>
 
-    <HBox spacing="10">
-        <Button text="Nova"           onAction="#novo"/>
-        <Button text="Criar Viagem"   onAction="#criarViagem"/>
-        <Button text="Avancar Estado" onAction="#avancarEstado"/>
-        <Button text="Cancelar"       onAction="#cancelarViagem"/>
-    </HBox>
+                <Label text="Porto de destino:" GridPane.rowIndex="0" GridPane.columnIndex="4"/>
+                <ComboBox fx:id="comboDestino"  GridPane.rowIndex="0" GridPane.columnIndex="5" prefWidth="160"/>
+
+                <Label text="Data de partida:"  GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                <DatePicker fx:id="dataPartida" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+                <Label text="Chegada prevista:" GridPane.rowIndex="1" GridPane.columnIndex="2"/>
+                <DatePicker fx:id="dataChegada" GridPane.rowIndex="1" GridPane.columnIndex="3"/>
+            </GridPane>
+
+            <HBox spacing="8">
+                <Button text="Nova"            onAction="#novo"/>
+                <Button text="Criar Viagem"    onAction="#criarViagem"/>
+                <Button text="Atualizar"       onAction="#atualizarViagem"/>
+                <Button text="Avançar Estado"  onAction="#avancarEstado"/>
+                <Button text="Cancelar Viagem" onAction="#cancelarViagem"/>
+            </HBox>
+        </VBox>
+    </TitledPane>
+
+    <!-- Painel de gestão de cargas e tripulantes (só activo com viagem seleccionada) -->
+    <TabPane VBox.vgrow="ALWAYS" prefHeight="220">
+
+        <!-- TAB: Cargas -->
+        <Tab text="Cargas da Viagem" closable="false">
+            <VBox spacing="8">
+                <padding><Insets top="8" right="8" bottom="8" left="8"/></padding>
+
+                <TableView fx:id="tabelaCargas" VBox.vgrow="ALWAYS" prefHeight="130">
+                    <columns>
+                        <TableColumn fx:id="colCargaDesignacao" text="Designação"  prefWidth="200"/>
+                        <TableColumn fx:id="colCargaTipo"       text="Tipo"         prefWidth="130"/>
+                        <TableColumn fx:id="colCargaPeso"       text="Peso (t)"     prefWidth="90"/>
+                        <TableColumn fx:id="colCargaVolume"     text="Volume (m³)"  prefWidth="90"/>
+                    </columns>
+                    <placeholder><Label text="Nenhuma carga associada a esta viagem."/></placeholder>
+                </TableView>
+
+                <HBox spacing="8" alignment="CENTER_LEFT">
+                    <ComboBox fx:id="comboCarga" prefWidth="280"
+                              promptText="Selecione uma carga para adicionar"/>
+                    <Button text="Adicionar Carga"  onAction="#adicionarCarga"/>
+                    <Button text="Remover Selecionada" onAction="#removerCarga"/>
+                </HBox>
+            </VBox>
+        </Tab>
+
+        <!-- TAB: Tripulação -->
+        <Tab text="Tripulação da Viagem" closable="false">
+            <VBox spacing="8">
+                <padding><Insets top="8" right="8" bottom="8" left="8"/></padding>
+
+                <TableView fx:id="tabelaTripulantes" VBox.vgrow="ALWAYS" prefHeight="130">
+                    <columns>
+                        <TableColumn fx:id="colTripNome"        text="Nome"          prefWidth="200"/>
+                        <TableColumn fx:id="colTripFuncao"      text="Função"        prefWidth="130"/>
+                        <TableColumn fx:id="colTripCertificado" text="Certificado"   prefWidth="130"/>
+                        <TableColumn fx:id="colTripDisponivel"  text="Disponível"    prefWidth="80"/>
+                    </columns>
+                    <placeholder><Label text="Nenhum tripulante associado a esta viagem."/></placeholder>
+                </TableView>
+
+                <HBox spacing="8" alignment="CENTER_LEFT">
+                    <ComboBox fx:id="comboTripulante" prefWidth="280"
+                              promptText="Selecione um tripulante para adicionar"/>
+                    <Button text="Adicionar Tripulante" onAction="#adicionarTripulante"/>
+                    <Button text="Remover Selecionado"  onAction="#removerTripulante"/>
+                </HBox>
+            </VBox>
+        </Tab>
+
+    </TabPane>
 
     <Label fx:id="labelMensagem"/>
 </VBox>

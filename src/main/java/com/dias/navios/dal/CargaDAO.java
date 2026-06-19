@@ -11,61 +11,71 @@ public class CargaDAO {
 
     private final DatabaseConnection db = new DatabaseConnection();
 
-    private final RowMapper<Carga> mapper = rs -> new Carga(
+    static final String SELECT_BASE =
+            "SELECT c.id, c.designacao, tc.nome AS tipoCarga, c.volume, c.peso, " +
+            "tc.inflamavel, tc.corrosiva, tc.toxica, c.portoCargoId, c.portoDescargoId " +
+            "FROM Carga c JOIN TipoCarga tc ON tc.id = c.tipoCargaId";
+
+    static final RowMapper<Carga> MAPPER = rs -> new Carga(
             rs.getInt("id"),
             rs.getString("designacao"),
-            TipoCarga.valueOf(rs.getString("tipo")),
+            TipoCarga.valueOf(rs.getString("tipoCarga")),
             rs.getDouble("volume"),
             rs.getDouble("peso"),
             rs.getBoolean("inflamavel"),
             rs.getBoolean("corrosiva"),
             rs.getBoolean("toxica"),
-            rs.getInt("porto_carregamento_id"),
-            rs.getInt("porto_descarga_id")
+            rs.getInt("portoCargoId"),
+            rs.getInt("portoDescargoId")
     );
 
+    private int buscarIdTipoCarga(TipoCarga tipo) throws Exception {
+        List<Integer> result = db.select(
+                "SELECT id FROM TipoCarga WHERE nome=?",
+                rs -> rs.getInt("id"),
+                tipo.name());
+        if (result.isEmpty()) throw new IllegalArgumentException("TipoCarga não encontrado: " + tipo);
+        return result.get(0);
+    }
+
     public void inserir(Carga carga) throws Exception {
-        String sql = "INSERT INTO cargas (designacao, tipo, volume, peso, inflamavel, corrosiva, toxica, " +
-                "porto_carregamento_id, porto_descarga_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        int tipoId = buscarIdTipoCarga(carga.getTipo());
+        String sql = "INSERT INTO Carga (designacao, tipoCargaId, volume, peso, portoCargoId, portoDescargoId) " +
+                "VALUES (?, ?, ?, ?, ?, ?)";
         int id = db.create(sql,
                 carga.getDesignacao(),
-                carga.getTipo() == null ? null : carga.getTipo().name(),
+                tipoId,
                 carga.getVolume(),
                 carga.getPeso(),
-                carga.isInflamavel(),
-                carga.isCorrosiva(),
-                carga.isToxica(),
                 carga.getPortoCarregamentoId(),
                 carga.getPortoDescargaId());
         if (id > 0) carga.setId(id);
     }
 
     public void atualizar(Carga carga) throws Exception {
-        String sql = "UPDATE cargas SET designacao=?, tipo=?, volume=?, peso=?, inflamavel=?, corrosiva=?, " +
-                "toxica=?, porto_carregamento_id=?, porto_descarga_id=? WHERE id=?";
+        int tipoId = buscarIdTipoCarga(carga.getTipo());
+        String sql = "UPDATE Carga SET designacao=?, tipoCargaId=?, volume=?, peso=?, " +
+                "portoCargoId=?, portoDescargoId=? WHERE id=?";
         db.execute(sql,
                 carga.getDesignacao(),
-                carga.getTipo() == null ? null : carga.getTipo().name(),
+                tipoId,
                 carga.getVolume(),
                 carga.getPeso(),
-                carga.isInflamavel(),
-                carga.isCorrosiva(),
-                carga.isToxica(),
                 carga.getPortoCarregamentoId(),
                 carga.getPortoDescargaId(),
                 carga.getId());
     }
 
     public void apagar(int id) throws Exception {
-        db.execute("DELETE FROM cargas WHERE id=?", id);
+        db.execute("DELETE FROM Carga WHERE id=?", id);
     }
 
     public Carga buscarPorId(int id) throws Exception {
-        List<Carga> resultado = db.select("SELECT * FROM cargas WHERE id=?", mapper, id);
+        List<Carga> resultado = db.select(SELECT_BASE + " WHERE c.id=?", MAPPER, id);
         return resultado.isEmpty() ? null : resultado.get(0);
     }
 
     public List<Carga> listarTodos() throws Exception {
-        return db.select("SELECT * FROM cargas", mapper);
+        return db.select(SELECT_BASE, MAPPER);
     }
 }

@@ -25,7 +25,7 @@ public class NavioFactory {
         Navio navio = new Navio();
         navio.setNome(nome);
         navio.setCodigoIMO(codigoIMO);
-        navio.setTipo(TipoNavio.REFINADO);
+        navio.setTipo(TipoNavio.REFINADOS);
         navio.setCapacidadeMaxima(capacidade);
         navio.setNumTanques(numTanques);
         navio.setBandeira(bandeira);
@@ -53,7 +53,7 @@ public class NavioFactory {
         Navio navio = new Navio();
         navio.setNome(nome);
         navio.setCodigoIMO(codigoIMO);
-        navio.setTipo(TipoNavio.QUIMICO_PRODUTO);
+        navio.setTipo(TipoNavio.QUIMICO_PRODUTOS);
         navio.setCapacidadeMaxima(capacidade);
         navio.setNumTanques(numTanques);
         navio.setBandeira(bandeira);

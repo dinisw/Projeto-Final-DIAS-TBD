@@ -38,38 +38,51 @@ public class DatabaseConnection {
         this.password     = dotenv.get("DB_PASSWORD");
     }
 
-    // O Azure SQL gratuito "adormece" quando esta inativo e demora alguns
-    // segundos a acordar — por isso tentamos ligar varias vezes antes de desistir.
-    private static final int MAX_TENTATIVAS = 5;
-    private static final long ESPERA_ENTRE_TENTATIVAS_MS = 5000;
-
-    /** Abre (ou reutiliza) a ligacao cifrada a base de dados, com retentativas. */
+    /** Abre (ou reutiliza) a ligacao cifrada a base de dados.
+     *  Retenta automaticamente se o Azure SQL estiver a acordar (erro 40613). */
     private Connection connect() {
-        for (int tentativa = 1; tentativa <= MAX_TENTATIVAS; tentativa++) {
+        int maxAttempts = 6;
+        int waitSeconds = 10;
+
+        for (int attempt = 1; attempt <= maxAttempts; attempt++) {
             try {
-                if (connection == null || connection.isClosed()) {
-                    Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
-                    String url = "jdbc:sqlserver://" + serverName +
-                            ";databaseName=" + databaseName +
-                            ";encrypt=true;trustServerCertificate=true;loginTimeout=30";
-                    connection = DriverManager.getConnection(url, username, password);
+                if (connection != null && !connection.isClosed()) {
+                    return connection;
                 }
+                Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+                String url = "jdbc:sqlserver://" + serverName +
+                        ";databaseName=" + databaseName +
+                        ";encrypt=true;trustServerCertificate=true;loginTimeout=60";
+                connection = DriverManager.getConnection(url, username, password);
                 return connection;
-            } catch (Exception ex) {
-                System.err.println("Tentativa " + tentativa + "/" + MAX_TENTATIVAS
-                        + " de ligacao falhou: " + ex.getMessage());
-                if (tentativa < MAX_TENTATIVAS) {
-                    try {
-                        Thread.sleep(ESPERA_ENTRE_TENTATIVAS_MS);
-                    } catch (InterruptedException ie) {
-                        Thread.currentThread().interrupt();
-                        break;
-                    }
+            } catch (SQLException ex) {
+                boolean isAutoPause = ex.getErrorCode() == 40613
+                        || (ex.getMessage() != null && ex.getMessage().contains("not currently available"));
+                if (isAutoPause && attempt < maxAttempts) {
+                    System.out.println("BD a acordar, a aguardar " + waitSeconds
+                            + "s (tentativa " + attempt + "/" + maxAttempts + ")...");
+                    try { Thread.sleep(waitSeconds * 1000L); }
+                    catch (InterruptedException ie) { Thread.currentThread().interrupt(); }
+                } else {
+                    System.err.println("Ligacao a base de dados falhou: " + ex.getMessage());
+                    return null;
                 }
+            } catch (Exception ex) {
+                System.err.println("Ligacao a base de dados falhou: " + ex.getMessage());
+                return null;
             }
         }
-        System.err.println("Nao foi possivel ligar a base de dados apos " + MAX_TENTATIVAS + " tentativas.");
         return null;
+    }
+
+    /** Faz um SELECT 1 para acordar a BD sem bloquear a UI. */
+    public void warmUp() {
+        try {
+            select("SELECT 1", rs -> rs.getInt(1));
+            System.out.println("BD pronta.");
+        } catch (Exception ex) {
+            // falha silenciosa — o primeiro acesso real vai retentar
+        }
     }
 
     /** Fecha a ligacao. Chamar quando a aplicacao termina. */

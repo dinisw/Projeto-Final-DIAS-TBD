@@ -22,7 +22,7 @@ public class CargaFactory {
     public static Carga criarProdutoQuimico(String designacao, double volume, double peso, int portoCarregId, int portoDescargaId) {
         Carga carga = new Carga();
         carga.setDesignacao(designacao);
-        carga.setTipo(TipoCarga.PRODUTO_QUIMICO);
+        carga.setTipo(TipoCarga.QUIMICOS);
         carga.setVolume(volume);
         carga.setPeso(peso);
         carga.setInflamavel(false);

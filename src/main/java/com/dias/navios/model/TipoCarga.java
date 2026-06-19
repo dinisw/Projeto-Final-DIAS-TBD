@@ -6,5 +6,5 @@ public enum TipoCarga {
     DIESEL,
     JET_FUEL,
     FUELOLEO,
-    PRODUTO_QUIMICO
+    QUIMICOS
 }
