@@ -6,6 +6,7 @@ import com.dias.navios.model.Carga;
 import com.dias.navios.model.Porto;
 import com.dias.navios.model.TipoCarga;
 import com.dias.navios.ui.Dialogs;
+import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
@@ -49,7 +50,7 @@ public class CargaController {
         colTipo.setCellValueFactory(c -> new SimpleStringProperty(texto(c.getValue().getTipo())));
         colVolume.setCellValueFactory(c -> new SimpleStringProperty(String.valueOf(c.getValue().getVolume())));
         colPeso.setCellValueFactory(c -> new SimpleStringProperty(String.valueOf(c.getValue().getPeso())));
-        colInflamavel.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().isInflamavel() ? "Sim" : "Nao"));
+        colInflamavel.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().isInflamavel() ? "Sim" : "Não"));
         colCarga.setCellValueFactory(c -> new SimpleStringProperty(nomePorto(c.getValue().getPortoCarregamentoId())));
         colDescarga.setCellValueFactory(c -> new SimpleStringProperty(nomePorto(c.getValue().getPortoDescargaId())));
 
@@ -61,17 +62,25 @@ public class CargaController {
     }
 
     private void recarregar() {
-        try {
-            List<Porto> portos = portoService.listar();
-            portosPorId.clear();
-            for (Porto p : portos) portosPorId.put(p.getId(), p);
-            comboPortoCarga.setItems(FXCollections.observableArrayList(portos));
-            comboPortoDescarga.setItems(FXCollections.observableArrayList(portos));
-
-            tabela.setItems(FXCollections.observableArrayList(cargaService.listarCargas()));
-        } catch (Exception e) {
-            labelMensagem.setText("Erro ao carregar dados: " + e.getMessage());
-        }
+        labelMensagem.setText("A carregar...");
+        Thread t = new Thread(() -> {
+            try {
+                List<Porto> portos = portoService.listarPortos();
+                List<Carga> cargas = cargaService.listarCargas();
+                Platform.runLater(() -> {
+                    portosPorId.clear();
+                    portos.forEach(p -> portosPorId.put(p.getId(), p));
+                    comboPortoCarga.setItems(FXCollections.observableArrayList(portos));
+                    comboPortoDescarga.setItems(FXCollections.observableArrayList(portos));
+                    tabela.setItems(FXCollections.observableArrayList(cargas));
+                    labelMensagem.setText("");
+                });
+            } catch (Exception e) {
+                Platform.runLater(() -> labelMensagem.setText("Erro ao carregar: " + e.getMessage()));
+            }
+        });
+        t.setDaemon(true);
+        t.start();
     }
 
     @FXML
@@ -87,7 +96,7 @@ public class CargaController {
         try {
             if (comboTipo.getValue() == null) throw new IllegalArgumentException("Selecione o tipo de carga.");
 
-            Carga carga = (selecionado == null) ? new Carga() : selecionado;
+            final Carga carga = (selecionado == null) ? new Carga() : selecionado;
             carga.setDesignacao(campoDesignacao.getText());
             carga.setTipo(comboTipo.getValue());
             carga.setVolume(parseDouble(campoVolume.getText(), "Volume"));
@@ -98,19 +107,26 @@ public class CargaController {
             carga.setPortoCarregamentoId(comboPortoCarga.getValue() == null ? 0 : comboPortoCarga.getValue().getId());
             carga.setPortoDescargaId(comboPortoDescarga.getValue() == null ? 0 : comboPortoDescarga.getValue().getId());
 
-            if (selecionado == null) {
-                cargaService.registarCarga(carga);
-                Dialogs.info("Carga criada com sucesso.");
-            } else {
-                cargaService.editarCarga(carga);
-                Dialogs.info("Carga atualizada com sucesso.");
-            }
-            novo();
-            recarregar();
+            final boolean isNova = (selecionado == null);
+            Thread t = new Thread(() -> {
+                try {
+                    if (isNova) cargaService.registarCarga(carga);
+                    else        cargaService.editarCarga(carga);
+                    Platform.runLater(() -> {
+                        Dialogs.info(isNova ? "Carga criada com sucesso." : "Carga atualizada com sucesso.");
+                        novo();
+                        recarregar();
+                    });
+                } catch (IllegalArgumentException | IllegalStateException e) {
+                    Platform.runLater(() -> Dialogs.erro(e.getMessage()));
+                } catch (Exception e) {
+                    Platform.runLater(() -> Dialogs.erro("Erro ao guardar: " + e.getMessage()));
+                }
+            });
+            t.setDaemon(true);
+            t.start();
         } catch (IllegalArgumentException e) {
             Dialogs.erro(e.getMessage());
-        } catch (Exception e) {
-            Dialogs.erro("Erro ao guardar: " + e.getMessage());
         }
     }
 
@@ -119,14 +135,22 @@ public class CargaController {
         Carga sel = tabela.getSelectionModel().getSelectedItem();
         if (sel == null) { Dialogs.erro("Selecione uma carga para apagar."); return; }
         if (!Dialogs.confirmar("Apagar a carga \"" + sel.getDesignacao() + "\"?")) return;
-        try {
-            cargaService.apagarCarga(sel.getId());
-            Dialogs.info("Carga apagada.");
-            novo();
-            recarregar();
-        } catch (Exception e) {
-            Dialogs.erro("Erro ao apagar: " + e.getMessage());
-        }
+
+        final int id = sel.getId();
+        Thread t = new Thread(() -> {
+            try {
+                cargaService.apagarCarga(id);
+                Platform.runLater(() -> {
+                    Dialogs.info("Carga apagada.");
+                    novo();
+                    recarregar();
+                });
+            } catch (Exception e) {
+                Platform.runLater(() -> Dialogs.erro("Erro ao apagar: " + e.getMessage()));
+            }
+        });
+        t.setDaemon(true);
+        t.start();
     }
 
     private void preencher(Carga c) {
@@ -165,6 +189,6 @@ public class CargaController {
 
     private double parseDouble(String s, String campo) {
         try { return Double.parseDouble(s.trim().replace(",", ".")); }
-        catch (Exception e) { throw new IllegalArgumentException("O campo \"" + campo + "\" deve ser um numero."); }
+        catch (Exception e) { throw new IllegalArgumentException("O campo \"" + campo + "\" deve ser um número."); }
     }
 }

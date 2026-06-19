@@ -274,7 +274,6 @@ class ViagemServiceRegrasNegocioTest {
         when(viagemDAO.buscarPorId(1)).thenReturn(v);
         when(navioDAO.buscarPorId(1)).thenReturn(n);
         when(cargaDAO.buscarPorId(1)).thenReturn(c);
-        when(viagemDAO.listarCargasDaViagem(1)).thenReturn(Collections.emptyList());
 
         assertThrows(IllegalStateException.class, () -> viagemService.associarCarga(1, 1));
         verify(viagemDAO, never()).adicionarCarga(anyInt(), anyInt());

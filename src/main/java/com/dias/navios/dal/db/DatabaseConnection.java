@@ -38,38 +38,21 @@ public class DatabaseConnection {
         this.password     = dotenv.get("DB_PASSWORD");
     }
 
-    // O Azure SQL gratuito "adormece" quando esta inativo e demora alguns
-    // segundos a acordar — por isso tentamos ligar varias vezes antes de desistir.
-    private static final int MAX_TENTATIVAS = 5;
-    private static final long ESPERA_ENTRE_TENTATIVAS_MS = 5000;
-
-    /** Abre (ou reutiliza) a ligacao cifrada a base de dados, com retentativas. */
+    /** Abre (ou reutiliza) a ligacao cifrada a base de dados. */
     private Connection connect() {
-        for (int tentativa = 1; tentativa <= MAX_TENTATIVAS; tentativa++) {
-            try {
-                if (connection == null || connection.isClosed()) {
-                    Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
-                    String url = "jdbc:sqlserver://" + serverName +
-                            ";databaseName=" + databaseName +
-                            ";encrypt=true;trustServerCertificate=true;loginTimeout=30";
-                    connection = DriverManager.getConnection(url, username, password);
-                }
-                return connection;
-            } catch (Exception ex) {
-                System.err.println("Tentativa " + tentativa + "/" + MAX_TENTATIVAS
-                        + " de ligacao falhou: " + ex.getMessage());
-                if (tentativa < MAX_TENTATIVAS) {
-                    try {
-                        Thread.sleep(ESPERA_ENTRE_TENTATIVAS_MS);
-                    } catch (InterruptedException ie) {
-                        Thread.currentThread().interrupt();
-                        break;
-                    }
-                }
+        try {
+            if (connection == null || connection.isClosed()) {
+                Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+                String url = "jdbc:sqlserver://" + serverName +
+                        ";databaseName=" + databaseName +
+                        ";encrypt=true;trustServerCertificate=true;loginTimeout=15";
+                connection = DriverManager.getConnection(url, username, password);
             }
+            return connection;
+        } catch (Exception ex) {
+            System.err.println("Ligacao a base de dados falhou: " + ex.getMessage());
+            return null;
         }
-        System.err.println("Nao foi possivel ligar a base de dados apos " + MAX_TENTATIVAS + " tentativas.");
-        return null;
     }
 
     /** Fecha a ligacao. Chamar quando a aplicacao termina. */

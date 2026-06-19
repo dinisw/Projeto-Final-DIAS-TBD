@@ -45,6 +45,7 @@
         <Button text="Criar Viagem"   onAction="#criarViagem"/>
         <Button text="Avancar Estado" onAction="#avancarEstado"/>
         <Button text="Cancelar"       onAction="#cancelarViagem"/>
+        <Button text="Atualizar" onAction="#atualizarViagem"/>
     </HBox>
 
     <Label fx:id="labelMensagem"/>

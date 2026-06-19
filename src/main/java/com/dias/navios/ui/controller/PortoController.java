@@ -3,10 +3,13 @@ package com.dias.navios.ui.controller;
 import com.dias.navios.bll.PortoService;
 import com.dias.navios.model.Porto;
 import com.dias.navios.ui.Dialogs;
+import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+
+import java.util.List;
 
 public class PortoController {
 
@@ -21,16 +24,14 @@ public class PortoController {
     @FXML private Label labelMensagem;
 
     private final PortoService portoService = new PortoService();
-    private Porto selecionado;   // null => estamos a criar um novo
+    private Porto selecionado;
 
     @FXML
     public void initialize() {
-        // Ligar cada coluna ao atributo correspondente do objeto Porto
         colNome.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getNome()));
         colPais.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getPais()));
         colCodigo.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getCodigo()));
 
-        // Ao clicar numa linha, carrega os dados no formulario
         tabela.getSelectionModel().selectedItemProperty()
                 .addListener((obs, antigo, novo) -> preencher(novo));
 
@@ -38,11 +39,20 @@ public class PortoController {
     }
 
     private void recarregar() {
-        try {
-            tabela.setItems(FXCollections.observableArrayList(portoService.listar()));
-        } catch (Exception e) {
-            labelMensagem.setText("Erro ao carregar: " + e.getMessage());
-        }
+        labelMensagem.setText("A carregar...");
+        Thread t = new Thread(() -> {
+            try {
+                List<Porto> portos = portoService.listarPortos();
+                Platform.runLater(() -> {
+                    tabela.setItems(FXCollections.observableArrayList(portos));
+                    labelMensagem.setText("");
+                });
+            } catch (Exception e) {
+                Platform.runLater(() -> labelMensagem.setText("Erro ao carregar: " + e.getMessage()));
+            }
+        });
+        t.setDaemon(true);
+        t.start();
     }
 
     @FXML
@@ -56,24 +66,31 @@ public class PortoController {
     @FXML
     public void guardar() {
         try {
-            Porto porto = (selecionado == null) ? new Porto() : selecionado;
+            final Porto porto = (selecionado == null) ? new Porto() : selecionado;
             porto.setNome(campoNome.getText());
             porto.setPais(campoPais.getText());
             porto.setCodigo(campoCodigo.getText());
 
-            if (selecionado == null) {
-                portoService.registar(porto);
-                Dialogs.info("Porto criado com sucesso.");
-            } else {
-                portoService.editar(porto);
-                Dialogs.info("Porto atualizado com sucesso.");
-            }
-            novo();
-            recarregar();
+            final boolean isNovo = (selecionado == null);
+            Thread t = new Thread(() -> {
+                try {
+                    if (isNovo) portoService.registarPorto(porto);
+                    else        portoService.editarPorto(porto);
+                    Platform.runLater(() -> {
+                        Dialogs.info(isNovo ? "Porto criado com sucesso." : "Porto atualizado com sucesso.");
+                        novo();
+                        recarregar();
+                    });
+                } catch (IllegalArgumentException e) {
+                    Platform.runLater(() -> Dialogs.erro(e.getMessage()));
+                } catch (Exception e) {
+                    Platform.runLater(() -> Dialogs.erro("Erro ao guardar: " + e.getMessage()));
+                }
+            });
+            t.setDaemon(true);
+            t.start();
         } catch (IllegalArgumentException e) {
             Dialogs.erro(e.getMessage());
-        } catch (Exception e) {
-            Dialogs.erro("Erro ao guardar: " + e.getMessage());
         }
     }
 
@@ -82,14 +99,22 @@ public class PortoController {
         Porto sel = tabela.getSelectionModel().getSelectedItem();
         if (sel == null) { Dialogs.erro("Selecione um porto para apagar."); return; }
         if (!Dialogs.confirmar("Apagar o porto \"" + sel.getNome() + "\"?")) return;
-        try {
-            portoService.apagar(sel.getId());
-            Dialogs.info("Porto apagado.");
-            novo();
-            recarregar();
-        } catch (Exception e) {
-            Dialogs.erro("Erro ao apagar: " + e.getMessage());
-        }
+
+        final int id = sel.getId();
+        Thread t = new Thread(() -> {
+            try {
+                portoService.apagarPorto(id);
+                Platform.runLater(() -> {
+                    Dialogs.info("Porto apagado.");
+                    novo();
+                    recarregar();
+                });
+            } catch (Exception e) {
+                Platform.runLater(() -> Dialogs.erro("Erro ao apagar: " + e.getMessage()));
+            }
+        });
+        t.setDaemon(true);
+        t.start();
     }
 
     private void preencher(Porto p) {

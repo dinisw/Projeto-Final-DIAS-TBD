@@ -5,38 +5,41 @@ import com.dias.navios.model.Porto;
 
 import java.util.List;
 
-/**
- * Camada de logica de negocio (BLL) para os Portos.
- * Faz as validacoes antes de delegar a persistencia no PortoDAO.
- */
 public class PortoService {
 
-    private final PortoDAO portoDAO = new PortoDAO();
+    private PortoDAO portoDAO = new PortoDAO();
 
-    public void registar(Porto porto) throws Exception {
-        validar(porto);
+    public void registarPorto(Porto porto) throws Exception {
+        validarPorto(porto);
         portoDAO.inserir(porto);
     }
 
-    public void editar(Porto porto) throws Exception {
-        validar(porto);
+    public void editarPorto(Porto porto) throws Exception {
+        validarPorto(porto);
         portoDAO.atualizar(porto);
     }
 
-    public void apagar(int id) throws Exception {
+    public void apagarPorto(int id) throws Exception {
         portoDAO.apagar(id);
     }
 
-    public List<Porto> listar() throws Exception {
+    public List<Porto> listarPortos() throws Exception {
         return portoDAO.listarTodos();
     }
 
-    private void validar(Porto porto) {
+    public Porto buscarPorto(int id) throws Exception {
+        return portoDAO.buscarPorId(id);
+    }
+
+    private void validarPorto(Porto porto) {
         if (porto.getNome() == null || porto.getNome().isBlank()) {
-            throw new IllegalArgumentException("O nome do porto e obrigatorio.");
+            throw new IllegalArgumentException("O nome do porto é obrigatório.");
+        }
+        if (porto.getPais() == null || porto.getPais().isBlank()) {
+            throw new IllegalArgumentException("O país do porto é obrigatório.");
         }
         if (porto.getCodigo() == null || porto.getCodigo().isBlank()) {
-            throw new IllegalArgumentException("O codigo do porto e obrigatorio.");
+            throw new IllegalArgumentException("O código do porto é obrigatório.");
         }
     }
 }

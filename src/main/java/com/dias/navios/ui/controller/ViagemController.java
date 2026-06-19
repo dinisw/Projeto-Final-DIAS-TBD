@@ -7,6 +7,7 @@ import com.dias.navios.model.Navio;
 import com.dias.navios.model.Porto;
 import com.dias.navios.model.Viagem;
 import com.dias.navios.ui.Dialogs;
+import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
@@ -35,14 +36,13 @@ public class ViagemController {
     @FXML private Label labelMensagem;
 
     private final ViagemService viagemService = new ViagemService();
-    private final NavioService navioService = new NavioService();
-    private final PortoService portoService = new PortoService();
+    private final NavioService navioService   = new NavioService();
+    private final PortoService portoService   = new PortoService();
 
-    // Para mostrar nomes (em vez de IDs) na tabela
     private final Map<Integer, Navio> naviosPorId = new HashMap<>();
     private final Map<Integer, Porto> portosPorId = new HashMap<>();
 
-    private Viagem selecionado; // null => criar nova viagem
+    private Viagem selecionado;
 
     @FXML
     public void initialize() {
@@ -60,34 +60,32 @@ public class ViagemController {
         recarregar();
     }
 
-    private void preencher(Viagem v) {
-        selecionado = v;
-        if (v == null) return;
-        comboNavio.setValue(naviosPorId.get(v.getNavioId()));
-        comboOrigem.setValue(portosPorId.get(v.getPortoOrigemId()));
-        comboDestino.setValue(portosPorId.get(v.getPortoDestinoId()));
-        dataPartida.setValue(v.getDataPartida());
-        dataChegada.setValue(v.getDataChegadaPrevista());
-        labelMensagem.setText("A editar viagem #" + v.getId() + " [" + v.getEstado() + "]");
-    }
-
     private void recarregar() {
-        try {
-            List<Navio> navios = navioService.listarNavios();
-            naviosPorId.clear();
-            for (Navio n : navios) naviosPorId.put(n.getId(), n);
-            comboNavio.setItems(FXCollections.observableArrayList(navios));
+        labelMensagem.setText("A carregar...");
+        Thread t = new Thread(() -> {
+            try {
+                List<Navio> navios   = navioService.listarNavios();
+                List<Porto> portos   = portoService.listarPortos();
+                List<Viagem> viagens = viagemService.listarViagens();
+                Platform.runLater(() -> {
+                    naviosPorId.clear();
+                    navios.forEach(n -> naviosPorId.put(n.getId(), n));
+                    comboNavio.setItems(FXCollections.observableArrayList(navios));
 
-            List<Porto> portos = portoService.listar();
-            portosPorId.clear();
-            for (Porto p : portos) portosPorId.put(p.getId(), p);
-            comboOrigem.setItems(FXCollections.observableArrayList(portos));
-            comboDestino.setItems(FXCollections.observableArrayList(portos));
+                    portosPorId.clear();
+                    portos.forEach(p -> portosPorId.put(p.getId(), p));
+                    comboOrigem.setItems(FXCollections.observableArrayList(portos));
+                    comboDestino.setItems(FXCollections.observableArrayList(portos));
 
-            tabela.setItems(FXCollections.observableArrayList(viagemService.listarViagens()));
-        } catch (Exception e) {
-            labelMensagem.setText("Erro ao carregar dados: " + e.getMessage());
-        }
+                    tabela.setItems(FXCollections.observableArrayList(viagens));
+                    labelMensagem.setText("");
+                });
+            } catch (Exception e) {
+                Platform.runLater(() -> labelMensagem.setText("Erro ao carregar: " + e.getMessage()));
+            }
+        });
+        t.setDaemon(true);
+        t.start();
     }
 
     @FXML
@@ -107,21 +105,31 @@ public class ViagemController {
         try {
             validarFormulario();
 
-            Viagem v = new Viagem();
+            final Viagem v = new Viagem();
             v.setNavioId(comboNavio.getValue().getId());
             v.setPortoOrigemId(comboOrigem.getValue().getId());
             v.setPortoDestinoId(comboDestino.getValue().getId());
             v.setDataPartida(dataPartida.getValue());
             v.setDataChegadaPrevista(dataChegada.getValue());
 
-            viagemService.criarViagem(v);
-            Dialogs.info("Viagem criada com sucesso (estado: PLANEADA).");
-            novo();
-            recarregar();
-        } catch (IllegalArgumentException | IllegalStateException e) {
+            Thread t = new Thread(() -> {
+                try {
+                    viagemService.criarViagem(v);
+                    Platform.runLater(() -> {
+                        Dialogs.info("Viagem criada com sucesso (estado: PLANEADA).");
+                        novo();
+                        recarregar();
+                    });
+                } catch (IllegalArgumentException | IllegalStateException e) {
+                    Platform.runLater(() -> Dialogs.erro(e.getMessage()));
+                } catch (Exception e) {
+                    Platform.runLater(() -> Dialogs.erro("Erro ao criar viagem: " + e.getMessage()));
+                }
+            });
+            t.setDaemon(true);
+            t.start();
+        } catch (IllegalArgumentException e) {
             Dialogs.erro(e.getMessage());
-        } catch (Exception e) {
-            Dialogs.erro("Erro ao criar viagem: " + e.getMessage());
         }
     }
 
@@ -129,15 +137,23 @@ public class ViagemController {
     public void avancarEstado() {
         Viagem sel = tabela.getSelectionModel().getSelectedItem();
         if (sel == null) { Dialogs.erro("Selecione uma viagem na tabela."); return; }
-        try {
-            viagemService.avancarEstado(sel.getId());
-            Dialogs.info("Estado da viagem avancado.");
-            recarregar();
-        } catch (IllegalStateException e) {
-            Dialogs.erro(e.getMessage());
-        } catch (Exception e) {
-            Dialogs.erro("Erro: " + e.getMessage());
-        }
+
+        final int id = sel.getId();
+        Thread t = new Thread(() -> {
+            try {
+                viagemService.avancarEstado(id);
+                Platform.runLater(() -> {
+                    Dialogs.info("Estado da viagem avançado.");
+                    recarregar();
+                });
+            } catch (IllegalStateException e) {
+                Platform.runLater(() -> Dialogs.erro(e.getMessage()));
+            } catch (Exception e) {
+                Platform.runLater(() -> Dialogs.erro("Erro: " + e.getMessage()));
+            }
+        });
+        t.setDaemon(true);
+        t.start();
     }
 
     @FXML
@@ -145,15 +161,23 @@ public class ViagemController {
         Viagem sel = tabela.getSelectionModel().getSelectedItem();
         if (sel == null) { Dialogs.erro("Selecione uma viagem na tabela."); return; }
         if (!Dialogs.confirmar("Cancelar a viagem #" + sel.getId() + "?")) return;
-        try {
-            viagemService.cancelarViagem(sel.getId());
-            Dialogs.info("Viagem cancelada.");
-            recarregar();
-        } catch (IllegalStateException e) {
-            Dialogs.erro(e.getMessage());
-        } catch (Exception e) {
-            Dialogs.erro("Erro: " + e.getMessage());
-        }
+
+        final int id = sel.getId();
+        Thread t = new Thread(() -> {
+            try {
+                viagemService.cancelarViagem(id);
+                Platform.runLater(() -> {
+                    Dialogs.info("Viagem cancelada.");
+                    recarregar();
+                });
+            } catch (IllegalStateException e) {
+                Platform.runLater(() -> Dialogs.erro(e.getMessage()));
+            } catch (Exception e) {
+                Platform.runLater(() -> Dialogs.erro("Erro: " + e.getMessage()));
+            }
+        });
+        t.setDaemon(true);
+        t.start();
     }
 
     @FXML
@@ -162,36 +186,55 @@ public class ViagemController {
         try {
             validarFormulario();
 
-            Viagem v = new Viagem();
-            v.setId(selecionado.getId());   // essencial — identifica qual viagem atualizar na BD
+            final Viagem v = new Viagem();
+            v.setId(selecionado.getId());
             v.setNavioId(comboNavio.getValue().getId());
             v.setPortoOrigemId(comboOrigem.getValue().getId());
             v.setPortoDestinoId(comboDestino.getValue().getId());
             v.setDataPartida(dataPartida.getValue());
             v.setDataChegadaPrevista(dataChegada.getValue());
 
-            viagemService.atualizarViagem(v);
-            Dialogs.info("Viagem #" + selecionado.getId() + " atualizada com sucesso.");
-            novo();
-            recarregar();
-        } catch (IllegalArgumentException | IllegalStateException e) {
+            Thread t = new Thread(() -> {
+                try {
+                    viagemService.editarViagem(v);
+                    Platform.runLater(() -> {
+                        Dialogs.info("Viagem #" + v.getId() + " atualizada com sucesso.");
+                        novo();
+                        recarregar();
+                    });
+                } catch (IllegalArgumentException | IllegalStateException e) {
+                    Platform.runLater(() -> Dialogs.erro(e.getMessage()));
+                } catch (Exception e) {
+                    Platform.runLater(() -> Dialogs.erro("Erro ao atualizar viagem: " + e.getMessage()));
+                }
+            });
+            t.setDaemon(true);
+            t.start();
+        } catch (IllegalArgumentException e) {
             Dialogs.erro(e.getMessage());
-        } catch (Exception e) {
-            Dialogs.erro("Erro ao atualizar viagem: " + e.getMessage());
         }
     }
 
-    // ───── auxiliares ─────
+    private void preencher(Viagem v) {
+        selecionado = v;
+        if (v == null) return;
+        comboNavio.setValue(naviosPorId.get(v.getNavioId()));
+        comboOrigem.setValue(portosPorId.get(v.getPortoOrigemId()));
+        comboDestino.setValue(portosPorId.get(v.getPortoDestinoId()));
+        dataPartida.setValue(v.getDataPartida());
+        dataChegada.setValue(v.getDataChegadaPrevista());
+        labelMensagem.setText("A editar viagem #" + v.getId() + " [" + v.getEstado() + "]");
+    }
 
     private void validarFormulario() {
-        if (comboNavio.getValue() == null) throw new IllegalArgumentException("Selecione o navio.");
-        if (comboOrigem.getValue() == null) throw new IllegalArgumentException("Selecione o porto de origem.");
+        if (comboNavio.getValue() == null)   throw new IllegalArgumentException("Selecione o navio.");
+        if (comboOrigem.getValue() == null)  throw new IllegalArgumentException("Selecione o porto de origem.");
         if (comboDestino.getValue() == null) throw new IllegalArgumentException("Selecione o porto de destino.");
-        if (dataPartida.getValue() == null) throw new IllegalArgumentException("Indique a data de partida.");
+        if (dataPartida.getValue() == null)  throw new IllegalArgumentException("Indique a data de partida.");
         if (comboOrigem.getValue().getId() == comboDestino.getValue().getId())
-            throw new IllegalArgumentException("A origem e o destino nao podem ser o mesmo porto.");
+            throw new IllegalArgumentException("A origem e o destino não podem ser o mesmo porto.");
         if (dataChegada.getValue() != null && dataChegada.getValue().isBefore(dataPartida.getValue()))
-            throw new IllegalArgumentException("A data de chegada nao pode ser anterior a de partida.");
+            throw new IllegalArgumentException("A data de chegada não pode ser anterior à de partida.");
     }
 
     private String texto(Object o) { return o == null ? "" : o.toString(); }
