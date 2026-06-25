@@ -9,7 +9,7 @@ import java.util.List;
 
 public class CargaDAO {
 
-    private final DatabaseConnection db = new DatabaseConnection();
+    private final DatabaseConnection db = DatabaseConnection.getInstance();
 
     static final String SELECT_BASE =
             "SELECT c.id, c.designacao, tc.nome AS tipoCarga, c.volume, c.peso, " +

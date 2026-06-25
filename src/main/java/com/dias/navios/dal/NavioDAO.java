@@ -10,7 +10,7 @@ import java.util.List;
 
 public class NavioDAO {
 
-    private final DatabaseConnection db = new DatabaseConnection();
+    private final DatabaseConnection db = DatabaseConnection.getInstance();
 
     private static final String SELECT_BASE =
             "SELECT n.id, n.nome, n.codigoIMO, tn.nome AS tipoNavio, n.capacidadeMaxima, " +

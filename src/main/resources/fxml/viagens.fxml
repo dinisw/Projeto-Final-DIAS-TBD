@@ -20,9 +20,10 @@
             <TableColumn fx:id="colNavio"   text="Navio"     prefWidth="150"/>
             <TableColumn fx:id="colOrigem"  text="Origem"    prefWidth="120"/>
             <TableColumn fx:id="colDestino" text="Destino"   prefWidth="120"/>
-            <TableColumn fx:id="colPartida" text="Partida"   prefWidth="95"/>
-            <TableColumn fx:id="colChegada" text="Chegada"   prefWidth="95"/>
-            <TableColumn fx:id="colEstado"  text="Estado"    prefWidth="110"/>
+            <TableColumn fx:id="colPartida"     text="Partida"       prefWidth="95"/>
+            <TableColumn fx:id="colChegada"     text="Chegada prev." prefWidth="95"/>
+            <TableColumn fx:id="colChegadaReal" text="Chegada real"  prefWidth="95"/>
+            <TableColumn fx:id="colEstado"      text="Estado"        prefWidth="110"/>
         </columns>
     </TableView>
 

@@ -421,6 +421,76 @@ class ViagemServiceRegrasNegocioTest {
     }
 
     // =========================================================================
+    // editarViagem — troca de navio (F2)
+    // =========================================================================
+
+    @Test
+    @DisplayName("Editar viagem trocando para navio com viagem ativa é rejeitado (F2)")
+    void editarParaNavioOcupadoEhRejeitado() throws Exception {
+        when(viagemDAO.buscarPorId(1)).thenReturn(viagem(1, EstadoViagem.PLANEADA)); // navioId=1
+
+        Viagem edicao = viagem(1, EstadoViagem.PLANEADA);
+        edicao.setNavioId(9);                 // troca de navio
+        edicao.setPortoOrigemId(1);
+        edicao.setPortoDestinoId(2);
+        edicao.setDataPartida(LocalDate.of(2025, 9, 1));
+
+        when(navioDAO.buscarPorId(9)).thenReturn(navio(EstadoNavio.ATIVO));
+        when(viagemDAO.navioTemViagemAtiva(9)).thenReturn(true);
+
+        assertThrows(IllegalStateException.class, () -> viagemService.editarViagem(edicao));
+        verify(viagemDAO, never()).atualizar(any());
+    }
+
+    @Test
+    @DisplayName("Editar viagem trocando para navio livre é aceite (F2)")
+    void editarParaNavioLivreEhAceite() throws Exception {
+        when(viagemDAO.buscarPorId(1)).thenReturn(viagem(1, EstadoViagem.PLANEADA)); // navioId=1
+
+        Viagem edicao = viagem(1, EstadoViagem.PLANEADA);
+        edicao.setNavioId(9);
+        edicao.setPortoOrigemId(1);
+        edicao.setPortoDestinoId(2);
+        edicao.setDataPartida(LocalDate.of(2025, 9, 1));
+
+        when(navioDAO.buscarPorId(9)).thenReturn(navio(EstadoNavio.ATIVO));
+        when(viagemDAO.navioTemViagemAtiva(9)).thenReturn(false);
+
+        assertDoesNotThrow(() -> viagemService.editarViagem(edicao));
+        verify(viagemDAO).atualizar(edicao);
+    }
+
+    // =========================================================================
+    // associarTripulante — um só Capitão (F3) e libertação ao remover (F7)
+    // =========================================================================
+
+    @Test
+    @DisplayName("Não é possível atribuir um segundo Capitão à mesma viagem (F3)")
+    void segundoCapitaoEhRejeitado() throws Exception {
+        Tripulante t = new Tripulante();
+        t.setId(2);
+        t.setFuncao(FuncaoTripulante.CAPITAO);
+        t.setEstadoDisponibilidade("DISPONIVEL");
+
+        when(viagemDAO.buscarPorId(1)).thenReturn(viagem(1, EstadoViagem.PLANEADA));
+        when(tripulanteDAO.buscarPorId(2)).thenReturn(t);
+        when(viagemDAO.viagemTemCapitao(1)).thenReturn(true);
+
+        assertThrows(IllegalStateException.class, () -> viagemService.associarTripulante(1, 2));
+        verify(viagemDAO, never()).adicionarTripulante(anyInt(), anyInt(), anyString());
+    }
+
+    @Test
+    @DisplayName("Remover tripulante de viagem PLANEADA liberta-o em DISPONIVEL (F7)")
+    void removerTripulanteLibertaTripulante() throws Exception {
+        when(viagemDAO.buscarPorId(1)).thenReturn(viagem(1, EstadoViagem.PLANEADA));
+
+        assertDoesNotThrow(() -> viagemService.removerTripulante(1, 7));
+        verify(viagemDAO).removerTripulante(1, 7);
+        verify(tripulanteDAO).atualizarEstado(7, "DISPONIVEL");
+    }
+
+    // =========================================================================
     // helpers
     // =========================================================================
 

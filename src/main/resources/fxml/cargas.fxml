@@ -36,7 +36,7 @@
         <Label text="Peso (t):"               GridPane.rowIndex="1" GridPane.columnIndex="2"/>
         <TextField fx:id="campoPeso"          GridPane.rowIndex="1" GridPane.columnIndex="3"/>
 
-        <Label text="Propriedades:"           GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+        <Label text="Propriedades (do tipo):"  GridPane.rowIndex="2" GridPane.columnIndex="0"/>
         <CheckBox fx:id="checkInflamavel" text="Inflamavel" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
         <CheckBox fx:id="checkCorrosiva"  text="Corrosiva"  GridPane.rowIndex="2" GridPane.columnIndex="2"/>
         <CheckBox fx:id="checkToxica"     text="Toxica"     GridPane.rowIndex="2" GridPane.columnIndex="3"/>

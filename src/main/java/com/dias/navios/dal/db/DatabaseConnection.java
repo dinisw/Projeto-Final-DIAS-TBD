@@ -8,15 +8,25 @@ import java.util.ArrayList;
 /**
  * Gestao da ligacao a base de dados (SQL Server / Azure SQL).
  *
- * Segue a mesma abordagem do projeto de referencia "Java With SQL":
- *  - as credenciais sao lidas do ficheiro .env (biblioteca dotenv);
- *  - a ligacao e feita por JDBC (DriverManager) com encriptacao TLS;
- *  - metodos utilitarios select() / create() / execute() para os DAO.
- *
- * A ligacao usa "encrypt=true" para garantir que o trafego com a base de
- * dados vai sempre cifrado (obrigatorio no Azure SQL).
+ * Desenho:
+ *  - SINGLETON: existe UMA instancia partilhada por toda a aplicacao
+ *    ({@link #getInstance()}), pelo que todos os DAO reutilizam a mesma
+ *    ligacao em vez de abrirem uma ligacao cada (evita fugas — ver F5).
+ *  - THREAD-SAFE: os metodos de acesso (select/create/execute) sao
+ *    synchronized, garantindo que a ligacao nao e usada por dois threads
+ *    em simultaneo (java.sql.Connection nao e thread-safe — ver F6).
+ *  - As credenciais sao lidas do ficheiro .env (biblioteca dotenv).
+ *  - A ligacao usa "encrypt=true" (obrigatorio no Azure SQL).
  */
 public class DatabaseConnection {
+
+    /** Instancia unica partilhada por todos os DAO. */
+    private static final DatabaseConnection INSTANCE = new DatabaseConnection();
+
+    /** Ponto de acesso unico — usar sempre em vez de "new DatabaseConnection()". */
+    public static DatabaseConnection getInstance() {
+        return INSTANCE;
+    }
 
     private final String serverName;
     private final String databaseName;
@@ -24,7 +34,7 @@ public class DatabaseConnection {
     private final String password;
     private Connection connection;
 
-    public DatabaseConnection() {
+    private DatabaseConnection() {
         // As credenciais ficam no .env (em src/main/resources) — nao alterar aqui.
         Dotenv dotenv = Dotenv.configure()
                 .directory("src/main/resources")
@@ -40,7 +50,7 @@ public class DatabaseConnection {
 
     /** Abre (ou reutiliza) a ligacao cifrada a base de dados.
      *  Retenta automaticamente se o Azure SQL estiver a acordar (erro 40613). */
-    private Connection connect() {
+    private synchronized Connection connect() {
         int maxAttempts = 6;
         int waitSeconds = 10;
 
@@ -76,7 +86,7 @@ public class DatabaseConnection {
     }
 
     /** Faz um SELECT 1 para acordar a BD sem bloquear a UI. */
-    public void warmUp() {
+    public synchronized void warmUp() {
         try {
             select("SELECT 1", rs -> rs.getInt(1));
             System.out.println("BD pronta.");
@@ -85,8 +95,8 @@ public class DatabaseConnection {
         }
     }
 
-    /** Fecha a ligacao. Chamar quando a aplicacao termina. */
-    public void disconnect() {
+    /** Fecha a ligacao. Chamar quando a aplicacao termina (MainApp.stop()). */
+    public synchronized void disconnect() {
         try {
             if (connection != null && !connection.isClosed()) {
                 connection.close();
@@ -97,7 +107,7 @@ public class DatabaseConnection {
     }
 
     // ── SELECT ────────────────────────────────────────────────────────────────
-    public <T> ArrayList<T> select(String sql, RowMapper<T> mapper, Object... params) throws Exception {
+    public synchronized <T> ArrayList<T> select(String sql, RowMapper<T> mapper, Object... params) throws Exception {
         ArrayList<T> results = new ArrayList<>();
         Connection conn = connect();
         if (conn == null) throw new Exception("Não foi possível ligar à base de dados.");
@@ -113,7 +123,7 @@ public class DatabaseConnection {
     }
 
     // ── INSERT (devolve a chave gerada) ───────────────────────────────────────
-    public int create(String sql, Object... params) throws Exception {
+    public synchronized int create(String sql, Object... params) throws Exception {
         Connection conn = connect();
         if (conn == null) throw new Exception("Não foi possível ligar à base de dados.");
         conn.setAutoCommit(false);
@@ -135,7 +145,7 @@ public class DatabaseConnection {
     }
 
     // ── UPDATE / DELETE (devolve o nr de linhas afetadas) ─────────────────────
-    public int execute(String sql, Object... params) throws Exception {
+    public synchronized int execute(String sql, Object... params) throws Exception {
         Connection conn = connect();
         if (conn == null) throw new Exception("Não foi possível ligar à base de dados.");
         conn.setAutoCommit(false);

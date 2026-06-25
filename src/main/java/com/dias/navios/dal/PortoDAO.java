@@ -8,7 +8,7 @@ import java.util.List;
 
 public class PortoDAO {
 
-    private final DatabaseConnection db = new DatabaseConnection();
+    private final DatabaseConnection db = DatabaseConnection.getInstance();
 
     private final RowMapper<Porto> mapper = rs -> new Porto(
             rs.getInt("id"),
