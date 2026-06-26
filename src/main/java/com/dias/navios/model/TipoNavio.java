@@ -7,29 +7,22 @@ public enum TipoNavio {
     QUIMICO_PRODUTOS;
 
     public boolean aceitaCarga(TipoCarga tipoCarga) {
-        switch (this) {
-            case CRUDE:
-                return tipoCarga == TipoCarga.PETROLEO_BRUTO;
-            case REFINADOS:
-                return tipoCarga == TipoCarga.GASOLINA || tipoCarga == TipoCarga.DIESEL
-                        || tipoCarga == TipoCarga.JET_FUEL || tipoCarga == TipoCarga.FUELOLEO;
-            case QUIMICO:
-                return tipoCarga == TipoCarga.QUIMICOS;
-            case QUIMICO_PRODUTOS:
-                return tipoCarga == TipoCarga.QUIMICOS || tipoCarga == TipoCarga.GASOLINA
-                        || tipoCarga == TipoCarga.DIESEL || tipoCarga == TipoCarga.JET_FUEL;
-            default:
-                return false;
-        }
+        return switch (this) {
+            case CRUDE            -> tipoCarga == TipoCarga.PETROLEO_BRUTO;
+            case REFINADOS        -> tipoCarga == TipoCarga.GASOLINA || tipoCarga == TipoCarga.DIESEL
+                                     || tipoCarga == TipoCarga.JET_FUEL || tipoCarga == TipoCarga.FUELOLEO;
+            case QUIMICO          -> tipoCarga == TipoCarga.QUIMICOS;
+            case QUIMICO_PRODUTOS -> tipoCarga == TipoCarga.QUIMICOS || tipoCarga == TipoCarga.GASOLINA
+                                     || tipoCarga == TipoCarga.DIESEL || tipoCarga == TipoCarga.JET_FUEL;
+        };
     }
 
     public String descricaoCompativel() {
-        switch (this) {
-            case CRUDE:           return "Petróleo Bruto";
-            case REFINADOS:       return "Gasolina, Diesel, Jet Fuel, Fuel Óleo";
-            case QUIMICO:         return "Químicos";
-            case QUIMICO_PRODUTOS: return "Químicos, Gasolina, Diesel, Jet Fuel";
-            default:              return "";
-        }
+        return switch (this) {
+            case CRUDE            -> "Petróleo Bruto";
+            case REFINADOS        -> "Gasolina, Diesel, Jet Fuel, Fuel Óleo";
+            case QUIMICO          -> "Químicos";
+            case QUIMICO_PRODUTOS -> "Químicos, Gasolina, Diesel, Jet Fuel";
+        };
     }
 }
