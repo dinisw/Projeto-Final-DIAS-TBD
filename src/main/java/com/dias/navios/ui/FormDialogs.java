@@ -157,16 +157,29 @@ public class FormDialogs {
 
         ComboBox<TipoCarga> cbTipo = combo(TipoCarga.values(), existente != null ? existente.getTipo() : null, "Tipo de carga");
 
-        CheckBox chkInflam  = new CheckBox("Inflamável");
-        CheckBox chkCorros  = new CheckBox("Corrosiva");
-        CheckBox chkToxica  = new CheckBox("Tóxica");
+        CheckBox chkInflam  = new CheckBox("🔥  Inflamável  — risco de incêndio ou explosão");
+        CheckBox chkCorros  = new CheckBox("🧪  Corrosiva   — danifica materiais e tecidos");
+        CheckBox chkToxica  = new CheckBox("☠️  Tóxica      — perigosa para a saúde humana");
+
+        // preenche automaticamente ao escolher tipo; permite override manual
+        Runnable autoFill = () -> {
+            TipoCarga t = cbTipo.getValue();
+            if (t != null) {
+                chkInflam.setSelected(t.isInflamavel());
+                chkCorros.setSelected(t.isCorrosiva());
+                chkToxica.setSelected(t.isToxica());
+            }
+        };
+        cbTipo.valueProperty().addListener((o, a, n) -> autoFill.run());
+
+        // ao editar, mostra os valores guardados (não os do enum)
         if (existente != null) {
             chkInflam.setSelected(existente.isInflamavel());
             chkCorros.setSelected(existente.isCorrosiva());
             chkToxica.setSelected(existente.isToxica());
         }
 
-        ComboBox<Porto> cbCarga   = portoCombo(portos, existente != null ? existente.getPortoCarregamentoId()  : -1, "Porto de carga");
+        ComboBox<Porto> cbCarga    = portoCombo(portos, existente != null ? existente.getPortoCarregamentoId() : -1, "Porto de carga");
         ComboBox<Porto> cbDescarga = portoCombo(portos, existente != null ? existente.getPortoDescargaId()     : -1, "Porto de descarga");
 
         int r = 0;
