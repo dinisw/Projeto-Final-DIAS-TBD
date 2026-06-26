@@ -55,6 +55,14 @@ public class CargaController {
         colDescarga.setCellValueFactory(c -> new SimpleStringProperty(nomePorto(c.getValue().getPortoDescargaId())));
 
         comboTipo.setItems(FXCollections.observableArrayList(TipoCarga.values()));
+
+        // As propriedades de perigo são determinadas pelo TIPO de carga, não são
+        // editáveis pelo utilizador (ver F4): só-leitura e atualizadas a partir do tipo.
+        checkInflamavel.setDisable(true);
+        checkCorrosiva.setDisable(true);
+        checkToxica.setDisable(true);
+        comboTipo.valueProperty().addListener((obs, antigo, novo) -> mostrarPropriedadesDoTipo(novo));
+
         tabela.getSelectionModel().selectedItemProperty()
                 .addListener((obs, antigo, novo) -> preencher(novo));
 
@@ -96,14 +104,16 @@ public class CargaController {
         try {
             if (comboTipo.getValue() == null) throw new IllegalArgumentException("Selecione o tipo de carga.");
 
+            final TipoCarga tipo = comboTipo.getValue();
             final Carga carga = (selecionado == null) ? new Carga() : selecionado;
             carga.setDesignacao(campoDesignacao.getText());
-            carga.setTipo(comboTipo.getValue());
+            carga.setTipo(tipo);
             carga.setVolume(parseDouble(campoVolume.getText(), "Volume"));
             carga.setPeso(parseDouble(campoPeso.getText(), "Peso"));
-            carga.setInflamavel(checkInflamavel.isSelected());
-            carga.setCorrosiva(checkCorrosiva.isSelected());
-            carga.setToxica(checkToxica.isSelected());
+            // Propriedades de perigo derivam do tipo (não dos checkboxes) — ver F4.
+            carga.setInflamavel(tipo.isInflamavel());
+            carga.setCorrosiva(tipo.isCorrosiva());
+            carga.setToxica(tipo.isToxica());
             carga.setPortoCarregamentoId(comboPortoCarga.getValue() == null ? 0 : comboPortoCarga.getValue().getId());
             carga.setPortoDescargaId(comboPortoDescarga.getValue() == null ? 0 : comboPortoDescarga.getValue().getId());
 
@@ -178,6 +188,13 @@ public class CargaController {
         checkToxica.setSelected(false);
         comboPortoCarga.setValue(null);
         comboPortoDescarga.setValue(null);
+    }
+
+    /** Reflete nos checkboxes (só-leitura) as propriedades de perigo do tipo escolhido. */
+    private void mostrarPropriedadesDoTipo(TipoCarga tipo) {
+        checkInflamavel.setSelected(tipo != null && tipo.isInflamavel());
+        checkCorrosiva.setSelected(tipo != null && tipo.isCorrosiva());
+        checkToxica.setSelected(tipo != null && tipo.isToxica());
     }
 
     private String texto(Object o) { return o == null ? "" : o.toString(); }

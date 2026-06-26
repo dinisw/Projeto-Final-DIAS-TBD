@@ -12,7 +12,7 @@ public class MainApp extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
         // Acorda a BD em background enquanto a UI carrega
-        Thread warmUp = new Thread(() -> new DatabaseConnection().warmUp());
+        Thread warmUp = new Thread(() -> DatabaseConnection.getInstance().warmUp());
         warmUp.setDaemon(true);
         warmUp.start();
 
@@ -24,5 +24,11 @@ public class MainApp extends Application {
         primaryStage.setTitle("Sistema de Gestão de Navios Petroleiros");
         primaryStage.setScene(scene);
         primaryStage.show();
+    }
+
+    @Override
+    public void stop() {
+        // Fecha a ligacao partilhada a BD quando a aplicacao termina (ver F5).
+        DatabaseConnection.getInstance().disconnect();
     }
 }

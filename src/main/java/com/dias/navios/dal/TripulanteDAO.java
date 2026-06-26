@@ -10,7 +10,7 @@ import java.util.List;
 
 public class TripulanteDAO {
 
-    private final DatabaseConnection db = new DatabaseConnection();
+    private final DatabaseConnection db = DatabaseConnection.getInstance();
 
     static final RowMapper<Tripulante> MAPPER = rs -> {
         Date dn = rs.getDate("dataNascimento");
@@ -49,6 +49,10 @@ public class TripulanteDAO {
                 t.getFuncao() == null ? null : t.getFuncao().name(),
                 t.getEstadoDisponibilidade() == null ? "DISPONIVEL" : t.getEstadoDisponibilidade(),
                 t.getId());
+    }
+
+    public void atualizarEstado(int id, String estado) throws Exception {
+        db.execute("UPDATE Tripulante SET estadoDisponibilidade=? WHERE id=?", estado, id);
     }
 
     public void apagar(int id) throws Exception {

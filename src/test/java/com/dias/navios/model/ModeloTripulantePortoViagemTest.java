@@ -123,6 +123,21 @@ class ModeloTripulantePortoViagemTest {
     }
 
     @Test
+    @DisplayName("Viagem — dataChegadaReal começa a null e é alterável")
+    void viagemDataChegadaRealDefaultNullEAlteravel() {
+        Viagem v = new Viagem(1, 1, 2,
+                LocalDate.of(2025, 8, 1),
+                LocalDate.of(2025, 8, 10),
+                5, EstadoViagem.PLANEADA);
+        // Uma viagem ainda não concluída não tem data real de chegada.
+        assertNull(v.getDataChegadaReal());
+
+        LocalDate chegada = LocalDate.of(2025, 8, 12);
+        v.setDataChegadaReal(chegada);
+        assertEquals(chegada, v.getDataChegadaReal());
+    }
+
+    @Test
     @DisplayName("EstadoViagem tem os 4 estados obrigatórios do enunciado")
     void estadoViagemTemQuatroEstados() {
         EstadoViagem[] estados = EstadoViagem.values();

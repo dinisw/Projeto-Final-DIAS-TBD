@@ -11,6 +11,7 @@ public class Viagem {
     private int portoDestinoId;  // FK para Porto
     private LocalDate dataPartida;
     private LocalDate dataChegadaPrevista;
+    private LocalDate dataChegadaReal;   // preenchida ao concluir a viagem
     private int navioId;         // FK para Navio
     private EstadoViagem estado;
     private List<Integer> cargasIds;      // lista de IDs de Carga
@@ -49,6 +50,9 @@ public class Viagem {
 
     public LocalDate getDataChegadaPrevista() { return dataChegadaPrevista; }
     public void setDataChegadaPrevista(LocalDate dataChegadaPrevista) { this.dataChegadaPrevista = dataChegadaPrevista; }
+
+    public LocalDate getDataChegadaReal() { return dataChegadaReal; }
+    public void setDataChegadaReal(LocalDate dataChegadaReal) { this.dataChegadaReal = dataChegadaReal; }
 
     public int getNavioId() { return navioId; }
     public void setNavioId(int navioId) { this.navioId = navioId; }

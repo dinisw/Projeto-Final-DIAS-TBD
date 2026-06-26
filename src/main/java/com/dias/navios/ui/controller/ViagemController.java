@@ -28,6 +28,7 @@ public class ViagemController {
     @FXML private TableColumn<Viagem, String> colDestino;
     @FXML private TableColumn<Viagem, String> colPartida;
     @FXML private TableColumn<Viagem, String> colChegada;
+    @FXML private TableColumn<Viagem, String> colChegadaReal;
     @FXML private TableColumn<Viagem, String> colEstado;
 
     // ── formulário ────────────────────────────────────────────────────────────
@@ -77,6 +78,7 @@ public class ViagemController {
         colDestino.setCellValueFactory(c -> new SimpleStringProperty(nomePorto(c.getValue().getPortoDestinoId())));
         colPartida.setCellValueFactory(c -> new SimpleStringProperty(texto(c.getValue().getDataPartida())));
         colChegada.setCellValueFactory(c -> new SimpleStringProperty(texto(c.getValue().getDataChegadaPrevista())));
+        colChegadaReal.setCellValueFactory(c -> new SimpleStringProperty(texto(c.getValue().getDataChegadaReal())));
         colEstado.setCellValueFactory(c -> new SimpleStringProperty(texto(c.getValue().getEstado())));
 
         // colunas da tabela de cargas

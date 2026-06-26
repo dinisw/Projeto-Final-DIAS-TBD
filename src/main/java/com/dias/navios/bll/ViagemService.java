@@ -38,6 +38,7 @@ public class ViagemService {
     // ─── Editar viagem (apenas PLANEADA) ──────────────────────────────────────
 
     public void editarViagem(Viagem viagem) throws Exception {
+        // 1.º: a viagem existe e está num estado editável.
         Viagem atual = viagemDAO.buscarPorId(viagem.getId());
         if (atual == null) {
             throw new IllegalArgumentException("Viagem não encontrada.");
@@ -45,6 +46,25 @@ public class ViagemService {
         if (atual.getEstado() != EstadoViagem.PLANEADA) {
             throw new IllegalStateException("Só é possível editar viagens no estado PLANEADA.");
         }
+
+        // 2.º: os dados novos são coerentes.
+        validarDadosBasicos(viagem);
+
+        // 3.º: se o navio foi trocado, aplicar ao novo navio as mesmas regras da criação.
+        // O trigger trg_ValidarNavioAoCriarViagem só valida no INSERT, não no UPDATE (ver F2).
+        if (viagem.getNavioId() != atual.getNavioId()) {
+            Navio navio = navioDAO.buscarPorId(viagem.getNavioId());
+            if (navio == null) {
+                throw new IllegalArgumentException("Navio não encontrado.");
+            }
+            if (navio.getEstado() != EstadoNavio.ATIVO) {
+                throw new IllegalStateException("O navio não está ativo e não pode ser associado a uma viagem.");
+            }
+            if (viagemDAO.navioTemViagemAtiva(viagem.getNavioId())) {
+                throw new IllegalStateException("O navio já tem uma viagem em curso ou planeada.");
+            }
+        }
+
         viagem.setEstado(EstadoViagem.PLANEADA);
         viagemDAO.atualizar(viagem);
     }
@@ -161,11 +181,16 @@ public class ViagemService {
         }
 
         String funcaoNaViagem = t.getFuncao() == null ? "OPERADOR" : t.getFuncao().name();
+
+        // Cada viagem só pode ter um Capitão (ver F3).
+        if ("CAPITAO".equals(funcaoNaViagem) && viagemDAO.viagemTemCapitao(viagemId)) {
+            throw new IllegalStateException("Esta viagem já tem um Capitão atribuído.");
+        }
+
         viagemDAO.adicionarTripulante(viagemId, tripulanteId, funcaoNaViagem);
 
-        // Marcar tripulante como em viagem
-        t.setEstadoDisponibilidade("EM_VIAGEM");
-        tripulanteDAO.atualizar(t);
+        // Marcar tripulante como em viagem (atualização dirigida, não sobrescreve o resto da linha)
+        tripulanteDAO.atualizarEstado(tripulanteId, "EM_VIAGEM");
     }
 
     public void removerTripulante(int viagemId, int tripulanteId) throws Exception {
@@ -175,6 +200,9 @@ public class ViagemService {
             throw new IllegalStateException("Só é possível remover tripulantes de viagens PLANEADAS.");
         }
         viagemDAO.removerTripulante(viagemId, tripulanteId);
+
+        // Libertar explicitamente o tripulante, sem depender do trigger da BD (ver F7).
+        tripulanteDAO.atualizarEstado(tripulanteId, "DISPONIVEL");
     }
 
     // ─── Consultas ────────────────────────────────────────────────────────────

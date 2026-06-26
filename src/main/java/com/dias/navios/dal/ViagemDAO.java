@@ -9,12 +9,13 @@ import java.util.List;
 
 public class ViagemDAO {
 
-    private final DatabaseConnection db = new DatabaseConnection();
+    private final DatabaseConnection db = DatabaseConnection.getInstance();
 
     private final RowMapper<Viagem> mapper = rs -> {
-        Date partida = rs.getDate("dataPartida");
-        Date chegada = rs.getDate("dataChegadaPrevista");
-        return new Viagem(
+        Date partida     = rs.getDate("dataPartida");
+        Date chegada     = rs.getDate("dataChegadaPrevista");
+        Date chegadaReal = rs.getDate("dataChegadaReal");
+        Viagem viagem = new Viagem(
                 rs.getInt("id"),
                 rs.getInt("portoOrigemId"),
                 rs.getInt("portoDestinoId"),
@@ -23,6 +24,8 @@ public class ViagemDAO {
                 rs.getInt("navioId"),
                 EstadoViagem.valueOf(rs.getString("estado"))
         );
+        viagem.setDataChegadaReal(chegadaReal == null ? null : chegadaReal.toLocalDate());
+        return viagem;
     };
 
     // ─── CRUD principal ───────────────────────────────────────────────────────
@@ -54,7 +57,15 @@ public class ViagemDAO {
     }
 
     public void atualizarEstado(int id, EstadoViagem estado) throws Exception {
-        db.execute("UPDATE Viagem SET estado=? WHERE id=?", estado.name(), id);
+        if (estado == EstadoViagem.CONCLUIDA) {
+            // Ao concluir, carimba a data real de chegada com o relogio do servidor
+            // (mesma semantica do sp_AlterarEstadoViagem). Nao toca na data noutras transicoes.
+            db.execute(
+                    "UPDATE Viagem SET estado=?, dataChegadaReal=CAST(GETDATE() AS DATE) WHERE id=?",
+                    estado.name(), id);
+        } else {
+            db.execute("UPDATE Viagem SET estado=? WHERE id=?", estado.name(), id);
+        }
     }
 
     public void apagar(int id) throws Exception {
