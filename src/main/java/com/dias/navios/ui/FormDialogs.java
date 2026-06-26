@@ -1,5 +1,6 @@
 package com.dias.navios.ui;
 
+import atlantafx.base.controls.ToggleSwitch;
 import com.dias.navios.model.*;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
@@ -231,7 +232,7 @@ public class FormDialogs {
         ComboBox<FuncaoTripulante> cbFuncao = combo(FuncaoTripulante.values(),
                 existente != null ? existente.getFuncao() : null, "Função");
 
-        CheckBox chkDisp = new CheckBox("Disponível");
+        ToggleSwitch chkDisp = new ToggleSwitch("Disponível");
         chkDisp.setSelected(existente == null || "DISPONIVEL".equalsIgnoreCase(existente.getEstadoDisponibilidade()));
 
         int r = 0;

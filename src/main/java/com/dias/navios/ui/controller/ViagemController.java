@@ -1,5 +1,6 @@
 package com.dias.navios.ui.controller;
 
+import atlantafx.base.theme.Styles;
 import com.dias.navios.bll.CargaService;
 import com.dias.navios.bll.NavioService;
 import com.dias.navios.bll.PortoService;
@@ -188,7 +189,7 @@ public class ViagemController {
                 try {
                     viagemService.criarViagem(v);
                     Platform.runLater(() -> {
-                        labelMensagem.setText("Viagem criada (estado: PLANEADA).");
+                        msg("Viagem criada (estado: PLANEADA).", true);
                         recarregar();
                     });
                 } catch (IllegalArgumentException | IllegalStateException e) {
@@ -210,7 +211,7 @@ public class ViagemController {
                 try {
                     viagemService.editarViagem(v);
                     Platform.runLater(() -> {
-                        labelMensagem.setText("Viagem #" + v.getId() + " atualizada.");
+                        msg("Viagem #" + v.getId() + " atualizada.", true);
                         recarregar();
                     });
                 } catch (IllegalArgumentException | IllegalStateException e) {
@@ -231,7 +232,7 @@ public class ViagemController {
         Thread t = new Thread(() -> {
             try {
                 viagemService.avancarEstado(id);
-                Platform.runLater(() -> { labelMensagem.setText("Estado avançado."); recarregar(); });
+                Platform.runLater(() -> { msg("Estado avançado.", true); recarregar(); });
             } catch (IllegalStateException e) {
                 Platform.runLater(() -> Dialogs.erro(e.getMessage()));
             } catch (Exception e) {
@@ -250,7 +251,7 @@ public class ViagemController {
         Thread t = new Thread(() -> {
             try {
                 viagemService.cancelarViagem(id);
-                Platform.runLater(() -> { labelMensagem.setText("Viagem cancelada."); recarregar(); });
+                Platform.runLater(() -> { msg("Viagem cancelada.", true); recarregar(); });
             } catch (IllegalStateException e) {
                 Platform.runLater(() -> Dialogs.erro(e.getMessage()));
             } catch (Exception e) {
@@ -276,7 +277,7 @@ public class ViagemController {
                 Platform.runLater(() -> {
                     comboCarga.setValue(null);
                     carregarDetalhesViagem(viagemId);
-                    labelMensagem.setText("Carga adicionada.");
+                    msg("Carga adicionada.", true);
                 });
             } catch (IllegalArgumentException | IllegalStateException e) {
                 Platform.runLater(() -> Dialogs.erro(e.getMessage()));
@@ -299,7 +300,7 @@ public class ViagemController {
         Thread t = new Thread(() -> {
             try {
                 viagemService.removerCarga(viagemId, cargaId);
-                Platform.runLater(() -> { carregarDetalhesViagem(viagemId); labelMensagem.setText("Carga removida."); });
+                Platform.runLater(() -> { carregarDetalhesViagem(viagemId); msg("Carga removida.", true); });
             } catch (Exception e) {
                 Platform.runLater(() -> Dialogs.erro("Erro: " + e.getMessage()));
             }
@@ -323,7 +324,7 @@ public class ViagemController {
                 Platform.runLater(() -> {
                     comboTripulante.setValue(null);
                     carregarDetalhesViagem(viagemId);
-                    labelMensagem.setText("Tripulante adicionado.");
+                    msg("Tripulante adicionado.", true);
                 });
             } catch (IllegalArgumentException | IllegalStateException e) {
                 Platform.runLater(() -> Dialogs.erro(e.getMessage()));
@@ -346,7 +347,7 @@ public class ViagemController {
         Thread t = new Thread(() -> {
             try {
                 viagemService.removerTripulante(viagemId, tripulanteId);
-                Platform.runLater(() -> { carregarDetalhesViagem(viagemId); labelMensagem.setText("Tripulante removido."); });
+                Platform.runLater(() -> { carregarDetalhesViagem(viagemId); msg("Tripulante removido.", true); });
             } catch (Exception e) {
                 Platform.runLater(() -> Dialogs.erro("Erro: " + e.getMessage()));
             }
@@ -360,4 +361,11 @@ public class ViagemController {
     private String str(Object o)       { return o == null ? "" : o.toString(); }
     private String nomeNavio(int id)   { Navio n = naviosPorId.get(id); return n == null ? "#" + id : n.getNome(); }
     private String nomePorto(int id)   { Porto p = portosPorId.get(id); return p == null ? "-" : p.getNome(); }
+
+    private void msg(String texto, boolean sucesso) {
+        labelMensagem.getStyleClass().removeAll(Styles.SUCCESS, Styles.DANGER, Styles.WARNING);
+        labelMensagem.setText(texto);
+        if (sucesso) labelMensagem.getStyleClass().add(Styles.SUCCESS);
+        else         labelMensagem.getStyleClass().add(Styles.DANGER);
+    }
 }

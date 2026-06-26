@@ -1,5 +1,6 @@
 package com.dias.navios.ui.controller;
 
+import atlantafx.base.theme.Styles;
 import com.dias.navios.bll.PortoService;
 import com.dias.navios.model.Porto;
 import com.dias.navios.ui.Dialogs;
@@ -86,7 +87,7 @@ public class PortoController {
         Thread t = new Thread(() -> {
             try {
                 portoService.apagarPorto(id);
-                Platform.runLater(() -> { labelMensagem.setText("Porto apagado."); recarregar(); });
+                Platform.runLater(() -> { msg("Porto apagado.", true); recarregar(); });
             } catch (Exception e) {
                 Platform.runLater(() -> Dialogs.erro("Erro ao apagar: " + e.getMessage()));
             }
@@ -101,7 +102,7 @@ public class PortoController {
                 if (isNovo) portoService.registarPorto(porto);
                 else        portoService.editarPorto(porto);
                 Platform.runLater(() -> {
-                    labelMensagem.setText(isNovo ? "Porto criado." : "Porto atualizado.");
+                    msg(isNovo ? "Porto criado." : "Porto atualizado.", true);
                     recarregar();
                 });
             } catch (IllegalArgumentException e) {
@@ -112,5 +113,12 @@ public class PortoController {
         });
         t.setDaemon(true);
         t.start();
+    }
+
+    private void msg(String texto, boolean sucesso) {
+        labelMensagem.getStyleClass().removeAll(Styles.SUCCESS, Styles.DANGER, Styles.WARNING);
+        labelMensagem.setText(texto);
+        if (sucesso) labelMensagem.getStyleClass().add(Styles.SUCCESS);
+        else         labelMensagem.getStyleClass().add(Styles.DANGER);
     }
 }

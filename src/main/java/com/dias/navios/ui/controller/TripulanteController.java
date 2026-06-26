@@ -1,5 +1,6 @@
 package com.dias.navios.ui.controller;
 
+import atlantafx.base.theme.Styles;
 import com.dias.navios.bll.TripulanteService;
 import com.dias.navios.model.Tripulante;
 import com.dias.navios.ui.Dialogs;
@@ -90,7 +91,7 @@ public class TripulanteController {
         Thread t = new Thread(() -> {
             try {
                 tripulanteService.apagarTripulante(id);
-                Platform.runLater(() -> { labelMensagem.setText("Tripulante apagado."); recarregar(); });
+                Platform.runLater(() -> { msg("Tripulante apagado.", true); recarregar(); });
             } catch (Exception e) {
                 Platform.runLater(() -> Dialogs.erro("Erro ao apagar: " + e.getMessage()));
             }
@@ -105,7 +106,7 @@ public class TripulanteController {
                 if (isNovo) tripulanteService.registarTripulante(tripulante);
                 else        tripulanteService.editarTripulante(tripulante);
                 Platform.runLater(() -> {
-                    labelMensagem.setText(isNovo ? "Tripulante criado." : "Tripulante atualizado.");
+                    msg(isNovo ? "Tripulante criado." : "Tripulante atualizado.", true);
                     recarregar();
                 });
             } catch (IllegalArgumentException | IllegalStateException e) {
@@ -119,4 +120,11 @@ public class TripulanteController {
     }
 
     private String str(Object o) { return o == null ? "" : o.toString(); }
+
+    private void msg(String texto, boolean sucesso) {
+        labelMensagem.getStyleClass().removeAll(Styles.SUCCESS, Styles.DANGER, Styles.WARNING);
+        labelMensagem.setText(texto);
+        if (sucesso) labelMensagem.getStyleClass().add(Styles.SUCCESS);
+        else         labelMensagem.getStyleClass().add(Styles.DANGER);
+    }
 }

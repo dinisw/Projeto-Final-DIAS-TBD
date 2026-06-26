@@ -1,5 +1,6 @@
 package com.dias.navios.ui;
 
+import atlantafx.base.theme.NordDark;
 import com.dias.navios.dal.db.DatabaseConnection;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -11,6 +12,9 @@ public class MainApp extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
+        // Tema inicial — pode ser alterado em runtime pelo seletor no menu
+        Application.setUserAgentStylesheet(new NordDark().getUserAgentStylesheet());
+
         // Acorda a BD em background enquanto a UI carrega
         Thread warmUp = new Thread(() -> DatabaseConnection.getInstance().warmUp());
         warmUp.setDaemon(true);
