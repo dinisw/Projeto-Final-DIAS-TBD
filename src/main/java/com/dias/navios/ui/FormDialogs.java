@@ -8,6 +8,7 @@ import javafx.scene.layout.GridPane;
 import javafx.util.StringConverter;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
@@ -289,8 +290,7 @@ public class FormDialogs {
         ToggleSwitch chkDisp = new ToggleSwitch("Disponível");
         chkDisp.setSelected(existente == null || "DISPONIVEL".equalsIgnoreCase(existente.getEstadoDisponibilidade()));
 
-        DatePicker dpNasc = new DatePicker(existente != null ? existente.getDataNascimento() : null);
-        dpNasc.setPromptText("dd/mm/aaaa");
+        DatePicker dpNasc = datePicker(existente != null ? existente.getDataNascimento() : null);
 
         int r = 0;
         g.add(lbl("Nome:"), 0, r);
@@ -372,11 +372,8 @@ public class FormDialogs {
         ComboBox<Porto> cbDestino = portoCombo(portos, existente != null ? existente.getPortoDestinoId() : -1,
                 "Porto de destino");
 
-        DatePicker dpPartida = new DatePicker(existente != null ? existente.getDataPartida() : LocalDate.now());
-        DatePicker dpChegada = new DatePicker(
-                existente != null ? existente.getDataChegadaPrevista() : LocalDate.now().plusDays(7));
-        dpPartida.setPromptText("Data de partida");
-        dpChegada.setPromptText("Data de chegada prevista");
+        DatePicker dpPartida = datePicker(existente != null ? existente.getDataPartida()         : LocalDate.now());
+        DatePicker dpChegada = datePicker(existente != null ? existente.getDataChegadaPrevista() : LocalDate.now().plusDays(7));
 
         if (existente != null) {
             navios.stream().filter(n -> n.getId() == existente.getNavioId()).findFirst().ifPresent(cbNavio::setValue);
@@ -495,5 +492,20 @@ public class FormDialogs {
 
     private static String fmtDouble(double v) {
         return v == (long) v ? String.valueOf((long) v) : String.valueOf(v);
+    }
+
+    private static final DateTimeFormatter FMT_DATA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+    private static DatePicker datePicker(LocalDate valor) {
+        DatePicker dp = new DatePicker(valor);
+        dp.setPromptText("dd/MM/aaaa");
+        dp.setConverter(new javafx.util.StringConverter<>() {
+            @Override public String toString(LocalDate d)   { return d != null ? FMT_DATA.format(d) : ""; }
+            @Override public LocalDate fromString(String s) {
+                try { return (s == null || s.isBlank()) ? null : LocalDate.parse(s, FMT_DATA); }
+                catch (Exception e) { return null; }
+            }
+        });
+        return dp;
     }
 }
