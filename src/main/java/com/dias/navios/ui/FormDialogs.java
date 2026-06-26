@@ -235,12 +235,16 @@ public class FormDialogs {
         ToggleSwitch chkDisp = new ToggleSwitch("Disponível");
         chkDisp.setSelected(existente == null || "DISPONIVEL".equalsIgnoreCase(existente.getEstadoDisponibilidade()));
 
+        DatePicker dpNasc = new DatePicker(existente != null ? existente.getDataNascimento() : null);
+        dpNasc.setPromptText("dd/mm/aaaa");
+
         int r = 0;
-        g.add(lbl("Nome:"),        0, r); g.add(fNome,   1, r++);
-        g.add(lbl("Certificado:"), 0, r); g.add(fCert,   1, r++);
-        g.add(lbl("Função:"),      0, r); g.add(cbFuncao,1, r++);
-        g.add(lbl("E-mail:"),      0, r); g.add(fEmail,  1, r++);
-        g.add(lbl("Estado:"),      0, r); g.add(chkDisp, 1, r++);
+        g.add(lbl("Nome:"),            0, r); g.add(fNome,   1, r++);
+        g.add(lbl("Certificado:"),     0, r); g.add(fCert,   1, r++);
+        g.add(lbl("Função:"),          0, r); g.add(cbFuncao,1, r++);
+        g.add(lbl("E-mail:"),          0, r); g.add(fEmail,  1, r++);
+        g.add(lbl("Dt. Nascimento:"),  0, r); g.add(dpNasc,  1, r++);
+        g.add(lbl("Estado:"),          0, r); g.add(chkDisp, 1, r++);
         dlg.getDialogPane().setContent(g);
 
         javafx.scene.Node okBtn = dlg.getDialogPane().lookupButton(btnOk);
@@ -258,6 +262,7 @@ public class FormDialogs {
             t.setNumeroCertificado(fCert.getText().trim());
             t.setFuncao(cbFuncao.getValue());
             t.setEmail(fEmail.getText().trim());
+            t.setDataNascimento(dpNasc.getValue());
             t.setEstadoDisponibilidade(chkDisp.isSelected() ? "DISPONIVEL" : "INDISPONIVEL");
             return t;
         });
