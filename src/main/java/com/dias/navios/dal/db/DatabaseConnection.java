@@ -37,7 +37,6 @@ public class DatabaseConnection {
     private DatabaseConnection() {
         // As credenciais ficam no .env (em src/main/resources) — nao alterar aqui.
         Dotenv dotenv = Dotenv.configure()
-                .directory("src/main/resources")
                 .ignoreIfMalformed()
                 .ignoreIfMissing()
                 .load();
