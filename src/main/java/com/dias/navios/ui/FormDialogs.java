@@ -249,11 +249,17 @@ public class FormDialogs {
 
         javafx.scene.Node okBtn = dlg.getDialogPane().lookupButton(btnOk);
         okBtn.setDisable(true);
-        Runnable validar = () -> okBtn.setDisable(
-                fNome.getText().isBlank() || fCert.getText().isBlank() || cbFuncao.getValue() == null);
+        Runnable validar = () -> {
+            boolean nascimentoValido = dpNasc.getValue() == null
+                    || dpNasc.getValue().isBefore(LocalDate.now().minusYears(18));
+            okBtn.setDisable(
+                    fNome.getText().isBlank() || fCert.getText().isBlank()
+                    || cbFuncao.getValue() == null || !nascimentoValido);
+        };
         fNome.textProperty().addListener((o, a, n) -> validar.run());
         fCert.textProperty().addListener((o, a, n) -> validar.run());
         cbFuncao.valueProperty().addListener((o, a, n) -> validar.run());
+        dpNasc.valueProperty().addListener((o, a, n) -> validar.run());
 
         dlg.setResultConverter(bt -> {
             if (bt != btnOk) return null;
