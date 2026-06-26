@@ -10,54 +10,74 @@
 
     <!-- ── Header ─────────────────────────────────────────────────────── -->
     <top>
-        <HBox alignment="CENTER_LEFT" style="-fx-background-color: #1a1a2e; -fx-padding: 10 20 10 20;" spacing="12">
-            <Label text="⚓" style="-fx-text-fill: white;">
+        <HBox alignment="CENTER_LEFT" spacing="12">
+            <padding><Insets top="10" right="20" bottom="10" left="20"/></padding>
+            <Label text="⚓">
                 <font><Font size="26"/></font>
             </Label>
             <VBox spacing="1">
-                <Label text="SMF — Sistema de Gestão de Navios Petroleiros"
-                       style="-fx-text-fill: white; -fx-font-weight: bold;">
+                <Label text="SMF — Sistema de Gestão de Navios Petroleiros">
                     <font><Font size="15"/></font>
                 </Label>
-                <Label text="ISEP · DIAS 2025/26"
-                       style="-fx-text-fill: #aaaacc;">
+                <Label text="ISEP · DIAS 2025/26">
                     <font><Font size="11"/></font>
                 </Label>
             </VBox>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label text="Tema:"/>
+            <ComboBox fx:id="comboTema" prefWidth="160"/>
         </HBox>
     </top>
 
     <!-- ── Sidebar ────────────────────────────────────────────────────── -->
     <left>
-        <VBox spacing="4" style="-fx-background-color: #f4f4f8; -fx-border-color: #ddd; -fx-border-width: 0 1 0 0;">
+        <VBox spacing="4">
             <padding><Insets top="16" right="12" bottom="16" left="12"/></padding>
 
-            <Label text="FROTA" style="-fx-text-fill: #888; -fx-font-size: 10px; -fx-font-weight: bold; -fx-padding: 0 0 2 4;"/>
-            <Button text="🚢  Navios"      onAction="#abrirNavios"     maxWidth="Infinity" prefHeight="34" alignment="CENTER_LEFT" style="-fx-padding: 0 12;"/>
-            <Button text="⚓  Portos"      onAction="#abrirPortos"     maxWidth="Infinity" prefHeight="34" alignment="CENTER_LEFT" style="-fx-padding: 0 12;"/>
+            <Label text="FROTA">
+                <font><Font size="10"/></font>
+            </Label>
+            <Button text="🚢  Navios"      onAction="#abrirNavios"     maxWidth="Infinity" prefHeight="34" alignment="CENTER_LEFT">
+                <padding><Insets left="8" right="8"/></padding>
+            </Button>
+            <Button text="⚓  Portos"      onAction="#abrirPortos"     maxWidth="Infinity" prefHeight="34" alignment="CENTER_LEFT">
+                <padding><Insets left="8" right="8"/></padding>
+            </Button>
 
-            <Separator style="-fx-padding: 4 0;"/>
+            <Separator/>
 
-            <Label text="OPERAÇÕES" style="-fx-text-fill: #888; -fx-font-size: 10px; -fx-font-weight: bold; -fx-padding: 0 0 2 4;"/>
-            <Button text="🗺  Viagens"     onAction="#abrirViagens"    maxWidth="Infinity" prefHeight="34" alignment="CENTER_LEFT" style="-fx-padding: 0 12;"/>
-            <Button text="🛢  Cargas"      onAction="#abrirCargas"     maxWidth="Infinity" prefHeight="34" alignment="CENTER_LEFT" style="-fx-padding: 0 12;"/>
-            <Button text="👤  Tripulantes" onAction="#abrirTripulacao" maxWidth="Infinity" prefHeight="34" alignment="CENTER_LEFT" style="-fx-padding: 0 12;"/>
+            <Label text="OPERAÇÕES">
+                <font><Font size="10"/></font>
+            </Label>
+            <Button text="🗺  Viagens"     onAction="#abrirViagens"    maxWidth="Infinity" prefHeight="34" alignment="CENTER_LEFT">
+                <padding><Insets left="8" right="8"/></padding>
+            </Button>
+            <Button text="🛢  Cargas"      onAction="#abrirCargas"     maxWidth="Infinity" prefHeight="34" alignment="CENTER_LEFT">
+                <padding><Insets left="8" right="8"/></padding>
+            </Button>
+            <Button text="👤  Tripulantes" onAction="#abrirTripulacao" maxWidth="Infinity" prefHeight="34" alignment="CENTER_LEFT">
+                <padding><Insets left="8" right="8"/></padding>
+            </Button>
         </VBox>
     </left>
 
     <!-- ── Welcome screen ─────────────────────────────────────────────── -->
     <center>
-        <VBox alignment="CENTER" spacing="12" style="-fx-background-color: white;">
-            <Label text="⚓" style="-fx-text-fill: #ccccdd;">
-                <font><Font size="64"/></font>
+        <VBox alignment="CENTER" spacing="24" fx:id="welcomePane">
+            <padding><Insets top="40" right="40" bottom="40" left="40"/></padding>
+
+            <Label text="⚓">
+                <font><Font size="56"/></font>
             </Label>
-            <Label text="Bem-vindo ao SMF" style="-fx-text-fill: #444;">
+            <Label text="Bem-vindo ao SMF">
                 <font><Font size="22"/></font>
             </Label>
-            <Label text="Selecione um módulo na barra lateral para começar."
-                   style="-fx-text-fill: #888;">
+            <Label text="Selecione um módulo na barra lateral para começar.">
                 <font><Font size="13"/></font>
             </Label>
+
+            <!-- Cards de resumo — populados pelo MainController -->
+            <HBox spacing="16" alignment="CENTER" fx:id="cardsPane"/>
         </VBox>
     </center>
 

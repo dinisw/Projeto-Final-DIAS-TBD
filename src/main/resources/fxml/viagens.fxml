@@ -8,7 +8,8 @@
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.dias.navios.ui.controller.ViagemController">
 
-    <HBox alignment="CENTER_LEFT" style="-fx-padding: 12 16 8 16;">
+    <HBox alignment="CENTER_LEFT">
+        <padding><Insets top="12" right="16" bottom="8" left="16"/></padding>
         <Label text="🗺  Gestão de Viagens">
             <font><Font size="20"/></font>
         </Label>
@@ -16,7 +17,7 @@
 
     <Separator/>
 
-    <ToolBar style="-fx-padding: 6 8 6 8;">
+    <ToolBar>
         <Button text="＋  Nova Viagem" onAction="#novo" prefHeight="30">
             <tooltip><Tooltip text="Planear uma nova viagem"/></tooltip>
         </Button>
@@ -29,7 +30,7 @@
             <tooltip><Tooltip text="Cancelar a viagem selecionada"/></tooltip>
         </Button>
         <Region HBox.hgrow="ALWAYS"/>
-        <Label fx:id="labelMensagem" style="-fx-text-fill: #555; -fx-padding: 0 8 0 0;"/>
+        <Label fx:id="labelMensagem"/>
     </ToolBar>
 
     <Separator/>
@@ -61,7 +62,8 @@
 
         <!-- Tab Cargas -->
         <Tab text="🛢  Cargas da Viagem">
-            <VBox spacing="8" style="-fx-padding: 10;">
+            <VBox spacing="8">
+                <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
                 <TableView fx:id="tabelaCargas" prefHeight="160" VBox.vgrow="ALWAYS">
                     <columnResizePolicy>
                         <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
@@ -86,7 +88,8 @@
 
         <!-- Tab Tripulantes -->
         <Tab text="👤  Tripulantes da Viagem">
-            <VBox spacing="8" style="-fx-padding: 10;">
+            <VBox spacing="8">
+                <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
                 <TableView fx:id="tabelaTripulantes" prefHeight="160" VBox.vgrow="ALWAYS">
                     <columnResizePolicy>
                         <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>

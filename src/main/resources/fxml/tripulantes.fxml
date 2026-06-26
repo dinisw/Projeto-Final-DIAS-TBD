@@ -8,7 +8,8 @@
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.dias.navios.ui.controller.TripulanteController">
 
-    <HBox alignment="CENTER_LEFT" style="-fx-padding: 12 16 8 16;">
+    <HBox alignment="CENTER_LEFT">
+        <padding><Insets top="12" right="16" bottom="8" left="16"/></padding>
         <Label text="👤  Gestão de Tripulantes">
             <font><Font size="20"/></font>
         </Label>
@@ -16,7 +17,7 @@
 
     <Separator/>
 
-    <ToolBar style="-fx-padding: 6 8 6 8;">
+    <ToolBar>
         <Button text="＋  Novo Tripulante" onAction="#novo" prefHeight="30">
             <tooltip><Tooltip text="Registar um novo tripulante"/></tooltip>
         </Button>
@@ -28,7 +29,7 @@
             <tooltip><Tooltip text="Apagar o tripulante selecionado"/></tooltip>
         </Button>
         <Region HBox.hgrow="ALWAYS"/>
-        <Label fx:id="labelMensagem" style="-fx-text-fill: #555; -fx-padding: 0 8 0 0;"/>
+        <Label fx:id="labelMensagem"/>
     </ToolBar>
 
     <Separator/>

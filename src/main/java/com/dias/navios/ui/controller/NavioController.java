@@ -1,5 +1,6 @@
 package com.dias.navios.ui.controller;
 
+import atlantafx.base.theme.Styles;
 import com.dias.navios.bll.NavioService;
 import com.dias.navios.bll.PortoService;
 import com.dias.navios.model.Navio;
@@ -104,7 +105,7 @@ public class NavioController {
         Thread t = new Thread(() -> {
             try {
                 navioService.apagarNavio(id);
-                Platform.runLater(() -> { labelMensagem.setText("Navio apagado."); recarregar(); });
+                Platform.runLater(() -> { msg("Navio apagado.", true); recarregar(); });
             } catch (Exception e) {
                 Platform.runLater(() -> Dialogs.erro("Erro ao apagar: " + e.getMessage()));
             }
@@ -119,7 +120,7 @@ public class NavioController {
                 if (isNovo) navioService.registarNavio(navio);
                 else        navioService.editarNavio(navio);
                 Platform.runLater(() -> {
-                    labelMensagem.setText(isNovo ? "Navio criado." : "Navio atualizado.");
+                    msg(isNovo ? "Navio criado." : "Navio atualizado.", true);
                     recarregar();
                 });
             } catch (IllegalArgumentException | IllegalStateException e) {
@@ -135,4 +136,11 @@ public class NavioController {
     private String str(Object o)         { return o == null ? "" : o.toString(); }
     private String nomePorto(int id)     { Porto p = portosPorId.get(id); return p == null ? "-" : p.getNome(); }
     private String fmtDouble(double v)   { return v == (long) v ? String.valueOf((long) v) : String.valueOf(v); }
+
+    private void msg(String texto, boolean sucesso) {
+        labelMensagem.getStyleClass().removeAll(Styles.SUCCESS, Styles.DANGER, Styles.WARNING);
+        labelMensagem.setText(texto);
+        if (sucesso) labelMensagem.getStyleClass().add(Styles.SUCCESS);
+        else         labelMensagem.getStyleClass().add(Styles.DANGER);
+    }
 }
