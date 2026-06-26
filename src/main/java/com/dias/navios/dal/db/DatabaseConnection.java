@@ -42,10 +42,19 @@ public class DatabaseConnection {
                 .ignoreIfMissing()
                 .load();
 
-        this.serverName   = dotenv.get("DB_SERVER");
-        this.databaseName = dotenv.get("DB_DATABASE");
-        this.username     = dotenv.get("DB_USER");
-        this.password     = dotenv.get("DB_PASSWORD");
+        this.serverName   = dotenv.get("DB_SERVER",   null);
+        this.databaseName = dotenv.get("DB_DATABASE", null);
+        this.username     = dotenv.get("DB_USER",     null);
+        this.password     = dotenv.get("DB_PASSWORD", null);
+
+        if (serverName == null || databaseName == null || username == null || password == null) {
+            System.err.println("ERRO: Ficheiro .env não encontrado ou incompleto.");
+            System.err.println("Cria um ficheiro .env na raiz do projeto com:");
+            System.err.println("  DB_SERVER=...");
+            System.err.println("  DB_DATABASE=...");
+            System.err.println("  DB_USER=...");
+            System.err.println("  DB_PASSWORD=...");
+        }
     }
 
     /** Abre (ou reutiliza) a ligacao cifrada a base de dados.
