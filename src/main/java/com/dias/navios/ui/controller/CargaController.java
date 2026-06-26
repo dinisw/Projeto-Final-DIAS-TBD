@@ -45,8 +45,8 @@ public class CargaController {
         colInflamavel.setCellValueFactory(c -> {
             Carga cg = c.getValue();
             String props = (cg.isInflamavel() ? "🔥 " : "") +
-                           (cg.isCorrosiva()  ? "⚗ " : "") +
-                           (cg.isToxica()     ? "☠ " : "");
+                           (cg.isCorrosiva()  ? "⚗ "  : "") +
+                           (cg.isToxica()     ? "☠ "  : "");
             return new SimpleStringProperty(props.isBlank() ? "—" : props.trim());
         });
         colCarga.setCellValueFactory(c -> new SimpleStringProperty(nomePorto(c.getValue().getPortoCarregamentoId())));

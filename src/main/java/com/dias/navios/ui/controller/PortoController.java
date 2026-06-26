@@ -30,14 +30,12 @@ public class PortoController {
         colPais.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getPais()));
         colCodigo.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getCodigo()));
 
-        // Editar/Apagar só ficam activos quando há linha seleccionada
         tabela.getSelectionModel().selectedItemProperty().addListener((obs, antigo, novo) -> {
             boolean sel = (novo != null);
             btnEditar.setDisable(!sel);
             btnApagar.setDisable(!sel);
         });
 
-        // Duplo-clique abre o diálogo de edição
         tabela.setRowFactory(tv -> {
             TableRow<Porto> row = new TableRow<>();
             row.setOnMouseClicked(e -> { if (e.getClickCount() == 2 && !row.isEmpty()) editar(); });

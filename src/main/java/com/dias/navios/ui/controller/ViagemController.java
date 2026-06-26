@@ -117,7 +117,6 @@ public class ViagemController {
             }
         });
 
-        // duplo-clique na tabela de viagens abre edição (apenas se PLANEADA)
         tabela.setRowFactory(tv -> {
             TableRow<Viagem> row = new TableRow<>();
             row.setOnMouseClicked(e -> { if (e.getClickCount() == 2 && !row.isEmpty()) editar(); });

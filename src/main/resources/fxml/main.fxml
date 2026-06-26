@@ -8,71 +8,56 @@
             fx:controller="com.dias.navios.ui.controller.MainController"
             fx:id="rootPane">
 
-    <!-- Cabeçalho superior -->
+    <!-- ── Header ─────────────────────────────────────────────────────── -->
     <top>
-        <VBox>
-            <HBox alignment="CENTER_LEFT" spacing="14">
-                <padding><Insets top="14" right="20" bottom="14" left="20"/></padding>
-                <Label text="⚓">
-                    <font><Font size="22.0"/></font>
+        <HBox alignment="CENTER_LEFT" style="-fx-background-color: #1a1a2e; -fx-padding: 10 20 10 20;" spacing="12">
+            <Label text="⚓" style="-fx-text-fill: white;">
+                <font><Font size="26"/></font>
+            </Label>
+            <VBox spacing="1">
+                <Label text="SMF — Sistema de Gestão de Navios Petroleiros"
+                       style="-fx-text-fill: white; -fx-font-weight: bold;">
+                    <font><Font size="15"/></font>
                 </Label>
-                <VBox>
-                    <Label text="SMF — Sistema de Gestão de Frota">
-                        <font><Font name="System Bold" size="16.0"/></font>
-                    </Label>
-                    <Label text="Navios Petroleiros  ·  ISEP  ·  DIAS 2025/26">
-                        <font><Font size="11.0"/></font>
-                    </Label>
-                </VBox>
-            </HBox>
-            <Separator/>
-        </VBox>
+                <Label text="ISEP · DIAS 2025/26"
+                       style="-fx-text-fill: #aaaacc;">
+                    <font><Font size="11"/></font>
+                </Label>
+            </VBox>
+        </HBox>
     </top>
 
-    <!-- Barra de navegação lateral -->
+    <!-- ── Sidebar ────────────────────────────────────────────────────── -->
     <left>
-        <VBox spacing="4" minWidth="180">
-            <padding><Insets top="16" right="10" bottom="16" left="10"/></padding>
+        <VBox spacing="4" style="-fx-background-color: #f4f4f8; -fx-border-color: #ddd; -fx-border-width: 0 1 0 0;">
+            <padding><Insets top="16" right="12" bottom="16" left="12"/></padding>
 
-            <Label text="MÓDULOS">
-                <font><Font name="System Bold" size="10.0"/></font>
-                <padding><Insets bottom="4" left="4"/></padding>
-            </Label>
+            <Label text="FROTA" style="-fx-text-fill: #888; -fx-font-size: 10px; -fx-font-weight: bold; -fx-padding: 0 0 2 4;"/>
+            <Button text="🚢  Navios"      onAction="#abrirNavios"     maxWidth="Infinity" prefHeight="34" alignment="CENTER_LEFT" style="-fx-padding: 0 12;"/>
+            <Button text="⚓  Portos"      onAction="#abrirPortos"     maxWidth="Infinity" prefHeight="34" alignment="CENTER_LEFT" style="-fx-padding: 0 12;"/>
 
-            <Button text="🚢  Navios"      onAction="#abrirNavios"     maxWidth="Infinity" prefHeight="36">
-                <tooltip><Tooltip text="Gerir a frota de navios petroleiros"/></tooltip>
-            </Button>
-            <Button text="🛢  Cargas"      onAction="#abrirCargas"     maxWidth="Infinity" prefHeight="36">
-                <tooltip><Tooltip text="Gerir o registo de cargas"/></tooltip>
-            </Button>
-            <Button text="🗺  Viagens"     onAction="#abrirViagens"    maxWidth="Infinity" prefHeight="36">
-                <tooltip><Tooltip text="Planear e gerir viagens"/></tooltip>
-            </Button>
-            <Button text="👤  Tripulação"  onAction="#abrirTripulacao" maxWidth="Infinity" prefHeight="36">
-                <tooltip><Tooltip text="Gerir tripulantes e certificações"/></tooltip>
-            </Button>
+            <Separator style="-fx-padding: 4 0;"/>
 
-            <Separator>
-                <padding><Insets top="6" bottom="6"/></padding>
-            </Separator>
-
-            <Button text="⚓  Portos"      onAction="#abrirPortos"     maxWidth="Infinity" prefHeight="36">
-                <tooltip><Tooltip text="Gerir portos e terminais"/></tooltip>
-            </Button>
+            <Label text="OPERAÇÕES" style="-fx-text-fill: #888; -fx-font-size: 10px; -fx-font-weight: bold; -fx-padding: 0 0 2 4;"/>
+            <Button text="🗺  Viagens"     onAction="#abrirViagens"    maxWidth="Infinity" prefHeight="34" alignment="CENTER_LEFT" style="-fx-padding: 0 12;"/>
+            <Button text="🛢  Cargas"      onAction="#abrirCargas"     maxWidth="Infinity" prefHeight="34" alignment="CENTER_LEFT" style="-fx-padding: 0 12;"/>
+            <Button text="👤  Tripulantes" onAction="#abrirTripulacao" maxWidth="Infinity" prefHeight="34" alignment="CENTER_LEFT" style="-fx-padding: 0 12;"/>
         </VBox>
     </left>
 
-    <!-- Conteúdo principal (substituído a cada navegação) -->
+    <!-- ── Welcome screen ─────────────────────────────────────────────── -->
     <center>
-        <VBox alignment="CENTER" spacing="16">
-            <padding><Insets top="40" right="40" bottom="40" left="40"/></padding>
-            <Label text="⚓">
-                <font><Font size="48.0"/></font>
+        <VBox alignment="CENTER" spacing="12" style="-fx-background-color: white;">
+            <Label text="⚓" style="-fx-text-fill: #ccccdd;">
+                <font><Font size="64"/></font>
             </Label>
-            <Label text="Sistema de Gestão de Frota">
-                <font><Font name="System Bold" size="20.0"/></font>
+            <Label text="Bem-vindo ao SMF" style="-fx-text-fill: #444;">
+                <font><Font size="22"/></font>
             </Label>
-            <Label text="Selecione um módulo na barra lateral para começar."/>
+            <Label text="Selecione um módulo na barra lateral para começar."
+                   style="-fx-text-fill: #888;">
+                <font><Font size="13"/></font>
+            </Label>
         </VBox>
     </center>
 

@@ -1,53 +1,53 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.control.*?>
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.text.Font?>
+<?import javafx.scene.text.*?>
+<?import javafx.geometry.*?>
 
-<VBox xmlns:fx="http://javafx.com/fxml"
-      fx:controller="com.dias.navios.ui.controller.CargaController"
-      spacing="0">
+<VBox spacing="0" xmlns="http://javafx.com/javafx/21"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.dias.navios.ui.controller.CargaController">
 
-    <HBox alignment="CENTER_LEFT" spacing="10">
-        <padding><Insets top="16" right="20" bottom="10" left="20"/></padding>
+    <HBox alignment="CENTER_LEFT" style="-fx-padding: 12 16 8 16;">
         <Label text="🛢  Gestão de Cargas">
-            <font><Font size="18.0"/></font>
+            <font><Font size="20"/></font>
         </Label>
     </HBox>
 
     <Separator/>
 
-    <ToolBar>
-        <Button text="＋  Nova Carga" onAction="#novo">
-            <tooltip><Tooltip text="Registar uma nova carga (abre janela de diálogo)"/></tooltip>
+    <ToolBar style="-fx-padding: 6 8 6 8;">
+        <Button text="＋  Nova Carga" onAction="#novo" prefHeight="30">
+            <tooltip><Tooltip text="Registar uma nova carga"/></tooltip>
         </Button>
         <Separator orientation="VERTICAL"/>
-        <Button fx:id="btnEditar" text="✎  Editar" onAction="#editar" disable="true">
-            <tooltip><Tooltip text="Editar carga seleccionada  (ou duplo-clique na linha)"/></tooltip>
+        <Button fx:id="btnEditar" text="✎  Editar" onAction="#editar" disable="true" prefHeight="30">
+            <tooltip><Tooltip text="Editar a carga selecionada (ou duplo-clique na tabela)"/></tooltip>
         </Button>
-        <Button fx:id="btnApagar" text="🗑  Apagar" onAction="#apagar" disable="true">
-            <tooltip><Tooltip text="Apagar carga seleccionada"/></tooltip>
+        <Button fx:id="btnApagar" text="🗑  Apagar" onAction="#apagar" disable="true" prefHeight="30">
+            <tooltip><Tooltip text="Apagar a carga selecionada"/></tooltip>
         </Button>
         <Region HBox.hgrow="ALWAYS"/>
-        <Label fx:id="labelMensagem"/>
-        <padding><Insets right="8"/></padding>
+        <Label fx:id="labelMensagem" style="-fx-text-fill: #555; -fx-padding: 0 8 0 0;"/>
     </ToolBar>
+
+    <Separator/>
 
     <TableView fx:id="tabela" VBox.vgrow="ALWAYS">
         <columnResizePolicy>
             <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
         </columnResizePolicy>
         <placeholder>
-            <Label text="Nenhuma carga registada.  Clique em '＋ Nova Carga' para começar."/>
+            <Label text="Nenhuma carga registada."/>
         </placeholder>
         <columns>
-            <TableColumn fx:id="colDesignacao" text="Designação"       prefWidth="200"/>
-            <TableColumn fx:id="colTipo"       text="Tipo de Carga"    prefWidth="130"/>
-            <TableColumn fx:id="colVolume"     text="Volume"           prefWidth="90"/>
-            <TableColumn fx:id="colPeso"       text="Peso"             prefWidth="80"/>
-            <TableColumn fx:id="colInflamavel" text="Perigos"          prefWidth="80"/>
-            <TableColumn fx:id="colCarga"      text="Porto de Carga"   prefWidth="140"/>
-            <TableColumn fx:id="colDescarga"   text="Porto de Descarga" prefWidth="140"/>
+            <TableColumn fx:id="colDesignacao" text="Designação"   prefWidth="200"/>
+            <TableColumn fx:id="colTipo"       text="Tipo"         prefWidth="130"/>
+            <TableColumn fx:id="colVolume"     text="Volume"       prefWidth="100"/>
+            <TableColumn fx:id="colPeso"       text="Peso"         prefWidth="100"/>
+            <TableColumn fx:id="colInflamavel" text="Propriedades" prefWidth="110"/>
+            <TableColumn fx:id="colCarga"      text="Porto Carga"  prefWidth="150"/>
+            <TableColumn fx:id="colDescarga"   text="Porto Descarga" prefWidth="150"/>
         </columns>
     </TableView>
 
