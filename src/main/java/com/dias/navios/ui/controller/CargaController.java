@@ -4,73 +4,71 @@ import com.dias.navios.bll.CargaService;
 import com.dias.navios.bll.PortoService;
 import com.dias.navios.model.Carga;
 import com.dias.navios.model.Porto;
-import com.dias.navios.model.TipoCarga;
 import com.dias.navios.ui.Dialogs;
+import com.dias.navios.ui.FormDialogs;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class CargaController {
 
-    @FXML private TableView<Carga> tabela;
-    @FXML private TableColumn<Carga, String> colDesignacao;
-    @FXML private TableColumn<Carga, String> colTipo;
-    @FXML private TableColumn<Carga, String> colVolume;
-    @FXML private TableColumn<Carga, String> colPeso;
-    @FXML private TableColumn<Carga, String> colInflamavel;
-    @FXML private TableColumn<Carga, String> colCarga;
-    @FXML private TableColumn<Carga, String> colDescarga;
+    @FXML private TableView<Carga>            tabela;
+    @FXML private TableColumn<Carga, String>  colDesignacao;
+    @FXML private TableColumn<Carga, String>  colTipo;
+    @FXML private TableColumn<Carga, String>  colVolume;
+    @FXML private TableColumn<Carga, String>  colPeso;
+    @FXML private TableColumn<Carga, String>  colInflamavel;
+    @FXML private TableColumn<Carga, String>  colCarga;
+    @FXML private TableColumn<Carga, String>  colDescarga;
+    @FXML private Button                      btnEditar;
+    @FXML private Button                      btnApagar;
+    @FXML private Label                       labelMensagem;
 
-    @FXML private TextField campoDesignacao;
-    @FXML private ComboBox<TipoCarga> comboTipo;
-    @FXML private TextField campoVolume;
-    @FXML private TextField campoPeso;
-    @FXML private CheckBox checkInflamavel;
-    @FXML private CheckBox checkCorrosiva;
-    @FXML private CheckBox checkToxica;
-    @FXML private ComboBox<Porto> comboPortoCarga;
-    @FXML private ComboBox<Porto> comboPortoDescarga;
-    @FXML private Label labelMensagem;
-
-    private final CargaService cargaService = new CargaService();
-    private final PortoService portoService = new PortoService();
-
-    private Carga selecionado;
+    private final CargaService  cargaService  = new CargaService();
+    private final PortoService  portoService  = new PortoService();
     private final Map<Integer, Porto> portosPorId = new HashMap<>();
+    private List<Porto> portosCache = new ArrayList<>();
 
     @FXML
     public void initialize() {
         colDesignacao.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getDesignacao()));
-        colTipo.setCellValueFactory(c -> new SimpleStringProperty(texto(c.getValue().getTipo())));
-        colVolume.setCellValueFactory(c -> new SimpleStringProperty(String.valueOf(c.getValue().getVolume())));
-        colPeso.setCellValueFactory(c -> new SimpleStringProperty(String.valueOf(c.getValue().getPeso())));
-        colInflamavel.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().isInflamavel() ? "Sim" : "Não"));
+        colTipo.setCellValueFactory(c -> new SimpleStringProperty(str(c.getValue().getTipo())));
+        colVolume.setCellValueFactory(c -> new SimpleStringProperty(fmtDouble(c.getValue().getVolume()) + " m³"));
+        colPeso.setCellValueFactory(c -> new SimpleStringProperty(fmtDouble(c.getValue().getPeso()) + " t"));
+        colInflamavel.setCellValueFactory(c -> {
+            Carga cg = c.getValue();
+            String props = (cg.isInflamavel() ? "🔥 " : "") +
+                           (cg.isCorrosiva()  ? "⚗ " : "") +
+                           (cg.isToxica()     ? "☠ " : "");
+            return new SimpleStringProperty(props.isBlank() ? "—" : props.trim());
+        });
         colCarga.setCellValueFactory(c -> new SimpleStringProperty(nomePorto(c.getValue().getPortoCarregamentoId())));
         colDescarga.setCellValueFactory(c -> new SimpleStringProperty(nomePorto(c.getValue().getPortoDescargaId())));
 
-        comboTipo.setItems(FXCollections.observableArrayList(TipoCarga.values()));
+        tabela.getSelectionModel().selectedItemProperty().addListener((obs, antigo, novo) -> {
+            boolean sel = (novo != null);
+            btnEditar.setDisable(!sel);
+            btnApagar.setDisable(!sel);
+        });
 
-        // As propriedades de perigo são determinadas pelo TIPO de carga, não são
-        // editáveis pelo utilizador (ver F4): só-leitura e atualizadas a partir do tipo.
-        checkInflamavel.setDisable(true);
-        checkCorrosiva.setDisable(true);
-        checkToxica.setDisable(true);
-        comboTipo.valueProperty().addListener((obs, antigo, novo) -> mostrarPropriedadesDoTipo(novo));
-
-        tabela.getSelectionModel().selectedItemProperty()
-                .addListener((obs, antigo, novo) -> preencher(novo));
+        tabela.setRowFactory(tv -> {
+            TableRow<Carga> row = new TableRow<>();
+            row.setOnMouseClicked(e -> { if (e.getClickCount() == 2 && !row.isEmpty()) editar(); });
+            return row;
+        });
 
         recarregar();
     }
 
     private void recarregar() {
-        labelMensagem.setText("A carregar...");
+        labelMensagem.setText("A carregar…");
         Thread t = new Thread(() -> {
             try {
                 List<Porto> portos = portoService.listarPortos();
@@ -78,13 +76,12 @@ public class CargaController {
                 Platform.runLater(() -> {
                     portosPorId.clear();
                     portos.forEach(p -> portosPorId.put(p.getId(), p));
-                    comboPortoCarga.setItems(FXCollections.observableArrayList(portos));
-                    comboPortoDescarga.setItems(FXCollections.observableArrayList(portos));
+                    portosCache = portos;
                     tabela.setItems(FXCollections.observableArrayList(cargas));
-                    labelMensagem.setText("");
+                    labelMensagem.setText(cargas.size() + " carga(s)");
                 });
             } catch (Exception e) {
-                Platform.runLater(() -> labelMensagem.setText("Erro ao carregar: " + e.getMessage()));
+                Platform.runLater(() -> labelMensagem.setText("Erro: " + e.getMessage()));
             }
         });
         t.setDaemon(true);
@@ -93,68 +90,29 @@ public class CargaController {
 
     @FXML
     public void novo() {
-        tabela.getSelectionModel().clearSelection();
-        selecionado = null;
-        limpar();
-        labelMensagem.setText("A criar uma nova carga.");
+        FormDialogs.mostrarCarga(null, portosCache).ifPresent(carga -> guardar(carga, true));
     }
 
     @FXML
-    public void guardar() {
-        try {
-            if (comboTipo.getValue() == null) throw new IllegalArgumentException("Selecione o tipo de carga.");
-
-            final TipoCarga tipo = comboTipo.getValue();
-            final Carga carga = (selecionado == null) ? new Carga() : selecionado;
-            carga.setDesignacao(campoDesignacao.getText());
-            carga.setTipo(tipo);
-            carga.setVolume(parseDouble(campoVolume.getText(), "Volume"));
-            carga.setPeso(parseDouble(campoPeso.getText(), "Peso"));
-            // Propriedades de perigo derivam do tipo (não dos checkboxes) — ver F4.
-            carga.setInflamavel(tipo.isInflamavel());
-            carga.setCorrosiva(tipo.isCorrosiva());
-            carga.setToxica(tipo.isToxica());
-            carga.setPortoCarregamentoId(comboPortoCarga.getValue() == null ? 0 : comboPortoCarga.getValue().getId());
-            carga.setPortoDescargaId(comboPortoDescarga.getValue() == null ? 0 : comboPortoDescarga.getValue().getId());
-
-            final boolean isNova = (selecionado == null);
-            Thread t = new Thread(() -> {
-                try {
-                    if (isNova) cargaService.registarCarga(carga);
-                    else        cargaService.editarCarga(carga);
-                    Platform.runLater(() -> {
-                        Dialogs.info(isNova ? "Carga criada com sucesso." : "Carga atualizada com sucesso.");
-                        novo();
-                        recarregar();
-                    });
-                } catch (IllegalArgumentException | IllegalStateException e) {
-                    Platform.runLater(() -> Dialogs.erro(e.getMessage()));
-                } catch (Exception e) {
-                    Platform.runLater(() -> Dialogs.erro("Erro ao guardar: " + e.getMessage()));
-                }
-            });
-            t.setDaemon(true);
-            t.start();
-        } catch (IllegalArgumentException e) {
-            Dialogs.erro(e.getMessage());
-        }
+    public void editar() {
+        Carga sel = tabela.getSelectionModel().getSelectedItem();
+        if (sel == null) return;
+        FormDialogs.mostrarCarga(sel, portosCache).ifPresent(carga -> {
+            carga.setId(sel.getId());
+            guardar(carga, false);
+        });
     }
 
     @FXML
     public void apagar() {
         Carga sel = tabela.getSelectionModel().getSelectedItem();
-        if (sel == null) { Dialogs.erro("Selecione uma carga para apagar."); return; }
+        if (sel == null) return;
         if (!Dialogs.confirmar("Apagar a carga \"" + sel.getDesignacao() + "\"?")) return;
-
         final int id = sel.getId();
         Thread t = new Thread(() -> {
             try {
                 cargaService.apagarCarga(id);
-                Platform.runLater(() -> {
-                    Dialogs.info("Carga apagada.");
-                    novo();
-                    recarregar();
-                });
+                Platform.runLater(() -> { labelMensagem.setText("Carga apagada."); recarregar(); });
             } catch (Exception e) {
                 Platform.runLater(() -> Dialogs.erro("Erro ao apagar: " + e.getMessage()));
             }
@@ -163,49 +121,26 @@ public class CargaController {
         t.start();
     }
 
-    private void preencher(Carga c) {
-        selecionado = c;
-        if (c == null) return;
-        campoDesignacao.setText(c.getDesignacao());
-        comboTipo.setValue(c.getTipo());
-        campoVolume.setText(String.valueOf(c.getVolume()));
-        campoPeso.setText(String.valueOf(c.getPeso()));
-        checkInflamavel.setSelected(c.isInflamavel());
-        checkCorrosiva.setSelected(c.isCorrosiva());
-        checkToxica.setSelected(c.isToxica());
-        comboPortoCarga.setValue(portosPorId.get(c.getPortoCarregamentoId()));
-        comboPortoDescarga.setValue(portosPorId.get(c.getPortoDescargaId()));
-        labelMensagem.setText("A editar: " + c.getDesignacao());
+    private void guardar(Carga carga, boolean isNovo) {
+        Thread t = new Thread(() -> {
+            try {
+                if (isNovo) cargaService.registarCarga(carga);
+                else        cargaService.editarCarga(carga);
+                Platform.runLater(() -> {
+                    labelMensagem.setText(isNovo ? "Carga criada." : "Carga atualizada.");
+                    recarregar();
+                });
+            } catch (IllegalArgumentException | IllegalStateException e) {
+                Platform.runLater(() -> Dialogs.erro(e.getMessage()));
+            } catch (Exception e) {
+                Platform.runLater(() -> Dialogs.erro("Erro ao guardar: " + e.getMessage()));
+            }
+        });
+        t.setDaemon(true);
+        t.start();
     }
 
-    private void limpar() {
-        campoDesignacao.clear();
-        comboTipo.setValue(null);
-        campoVolume.clear();
-        campoPeso.clear();
-        checkInflamavel.setSelected(false);
-        checkCorrosiva.setSelected(false);
-        checkToxica.setSelected(false);
-        comboPortoCarga.setValue(null);
-        comboPortoDescarga.setValue(null);
-    }
-
-    /** Reflete nos checkboxes (só-leitura) as propriedades de perigo do tipo escolhido. */
-    private void mostrarPropriedadesDoTipo(TipoCarga tipo) {
-        checkInflamavel.setSelected(tipo != null && tipo.isInflamavel());
-        checkCorrosiva.setSelected(tipo != null && tipo.isCorrosiva());
-        checkToxica.setSelected(tipo != null && tipo.isToxica());
-    }
-
-    private String texto(Object o) { return o == null ? "" : o.toString(); }
-
-    private String nomePorto(int id) {
-        Porto p = portosPorId.get(id);
-        return p == null ? "-" : p.getNome();
-    }
-
-    private double parseDouble(String s, String campo) {
-        try { return Double.parseDouble(s.trim().replace(",", ".")); }
-        catch (Exception e) { throw new IllegalArgumentException("O campo \"" + campo + "\" deve ser um número."); }
-    }
+    private String str(Object o)         { return o == null ? "" : o.toString(); }
+    private String nomePorto(int id)     { Porto p = portosPorId.get(id); return p == null ? "-" : p.getNome(); }
+    private String fmtDouble(double v)   { return v == (long) v ? String.valueOf((long) v) : String.valueOf(v); }
 }

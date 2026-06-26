@@ -1,63 +1,65 @@
 package com.dias.navios.ui.controller;
 
 import com.dias.navios.bll.TripulanteService;
-import com.dias.navios.model.FuncaoTripulante;
 import com.dias.navios.model.Tripulante;
 import com.dias.navios.ui.Dialogs;
+import com.dias.navios.ui.FormDialogs;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 
-import java.time.LocalDate;
 import java.util.List;
 
 public class TripulanteController {
 
-    @FXML private TableView<Tripulante> tabela;
-    @FXML private TableColumn<Tripulante, String> colNome;
-    @FXML private TableColumn<Tripulante, String> colCertificado;
-    @FXML private TableColumn<Tripulante, String> colFuncao;
-    @FXML private TableColumn<Tripulante, String> colEstado;
-    @FXML private TableColumn<Tripulante, String> colEmail;
-
-    @FXML private TextField campoNome;
-    @FXML private TextField campoCertificado;
-    @FXML private ComboBox<FuncaoTripulante> comboFuncao;
-    @FXML private TextField campoEmail;
-    @FXML private DatePicker campoDataNascimento;
-    @FXML private Label labelMensagem;
+    @FXML private TableView<Tripulante>            tabela;
+    @FXML private TableColumn<Tripulante, String>  colNome;
+    @FXML private TableColumn<Tripulante, String>  colCertificado;
+    @FXML private TableColumn<Tripulante, String>  colFuncao;
+    @FXML private TableColumn<Tripulante, String>  colEstado;
+    @FXML private TableColumn<Tripulante, String>  colEmail;
+    @FXML private Button                           btnEditar;
+    @FXML private Button                           btnApagar;
+    @FXML private Label                            labelMensagem;
 
     private final TripulanteService tripulanteService = new TripulanteService();
-    private Tripulante selecionado;
 
     @FXML
     public void initialize() {
         colNome.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getNome()));
         colCertificado.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getNumeroCertificado()));
-        colFuncao.setCellValueFactory(c -> new SimpleStringProperty(texto(c.getValue().getFuncao())));
+        colFuncao.setCellValueFactory(c -> new SimpleStringProperty(str(c.getValue().getFuncao())));
         colEstado.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getEstadoDisponibilidade()));
         colEmail.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getEmail()));
 
-        comboFuncao.setItems(FXCollections.observableArrayList(FuncaoTripulante.values()));
-        tabela.getSelectionModel().selectedItemProperty()
-                .addListener((obs, antigo, novo) -> preencher(novo));
+        tabela.getSelectionModel().selectedItemProperty().addListener((obs, antigo, novo) -> {
+            boolean sel = (novo != null);
+            btnEditar.setDisable(!sel);
+            btnApagar.setDisable(!sel);
+        });
+
+        tabela.setRowFactory(tv -> {
+            TableRow<Tripulante> row = new TableRow<>();
+            row.setOnMouseClicked(e -> { if (e.getClickCount() == 2 && !row.isEmpty()) editar(); });
+            return row;
+        });
 
         recarregar();
     }
 
     private void recarregar() {
-        labelMensagem.setText("A carregar...");
+        labelMensagem.setText("A carregar…");
         Thread t = new Thread(() -> {
             try {
-                List<Tripulante> tripulantes = tripulanteService.listarTripulantes();
+                List<Tripulante> lista = tripulanteService.listarTripulantes();
                 Platform.runLater(() -> {
-                    tabela.setItems(FXCollections.observableArrayList(tripulantes));
-                    labelMensagem.setText("");
+                    tabela.setItems(FXCollections.observableArrayList(lista));
+                    labelMensagem.setText(lista.size() + " tripulante(s)");
                 });
             } catch (Exception e) {
-                Platform.runLater(() -> labelMensagem.setText("Erro ao carregar: " + e.getMessage()));
+                Platform.runLater(() -> labelMensagem.setText("Erro: " + e.getMessage()));
             }
         });
         t.setDaemon(true);
@@ -66,70 +68,29 @@ public class TripulanteController {
 
     @FXML
     public void novo() {
-        tabela.getSelectionModel().clearSelection();
-        selecionado = null;
-        limpar();
-        labelMensagem.setText("A registar um novo tripulante.");
+        FormDialogs.mostrarTripulante(null).ifPresent(t -> guardar(t, true));
     }
 
     @FXML
-    public void guardar() {
-        try {
-            if (comboFuncao.getValue() == null)
-                throw new IllegalArgumentException("Selecione a função do tripulante.");
-            if (campoEmail.getText().isBlank())
-                throw new IllegalArgumentException("O email é obrigatório.");
-            if (campoDataNascimento.getValue() == null)
-                throw new IllegalArgumentException("A data de nascimento é obrigatória.");
-
-            final Tripulante t = (selecionado == null) ? new Tripulante() : selecionado;
-            t.setNome(campoNome.getText());
-            t.setNumeroCertificado(campoCertificado.getText());
-            t.setFuncao(comboFuncao.getValue());
-            t.setEmail(campoEmail.getText());
-            t.setDataNascimento(campoDataNascimento.getValue());
-            if (t.getEstadoDisponibilidade() == null) {
-                t.setEstadoDisponibilidade("DISPONIVEL");
-            }
-
-            final boolean isNovo = (selecionado == null);
-            Thread th = new Thread(() -> {
-                try {
-                    if (isNovo) tripulanteService.registarTripulante(t);
-                    else        tripulanteService.editarTripulante(t);
-                    Platform.runLater(() -> {
-                        Dialogs.info(isNovo ? "Tripulante criado com sucesso." : "Tripulante atualizado com sucesso.");
-                        novo();
-                        recarregar();
-                    });
-                } catch (IllegalArgumentException | IllegalStateException e) {
-                    Platform.runLater(() -> Dialogs.erro(e.getMessage()));
-                } catch (Exception e) {
-                    Platform.runLater(() -> Dialogs.erro("Erro ao guardar: " + e.getMessage()));
-                }
-            });
-            th.setDaemon(true);
-            th.start();
-        } catch (IllegalArgumentException e) {
-            Dialogs.erro(e.getMessage());
-        }
+    public void editar() {
+        Tripulante sel = tabela.getSelectionModel().getSelectedItem();
+        if (sel == null) return;
+        FormDialogs.mostrarTripulante(sel).ifPresent(t -> {
+            t.setId(sel.getId());
+            guardar(t, false);
+        });
     }
 
     @FXML
     public void apagar() {
         Tripulante sel = tabela.getSelectionModel().getSelectedItem();
-        if (sel == null) { Dialogs.erro("Selecione um tripulante para apagar."); return; }
+        if (sel == null) return;
         if (!Dialogs.confirmar("Apagar o tripulante \"" + sel.getNome() + "\"?")) return;
-
         final int id = sel.getId();
         Thread t = new Thread(() -> {
             try {
                 tripulanteService.apagarTripulante(id);
-                Platform.runLater(() -> {
-                    Dialogs.info("Tripulante apagado.");
-                    novo();
-                    recarregar();
-                });
+                Platform.runLater(() -> { labelMensagem.setText("Tripulante apagado."); recarregar(); });
             } catch (Exception e) {
                 Platform.runLater(() -> Dialogs.erro("Erro ao apagar: " + e.getMessage()));
             }
@@ -138,24 +99,24 @@ public class TripulanteController {
         t.start();
     }
 
-    private void preencher(Tripulante t) {
-        selecionado = t;
-        if (t == null) return;
-        campoNome.setText(t.getNome());
-        campoCertificado.setText(t.getNumeroCertificado());
-        comboFuncao.setValue(t.getFuncao());
-        campoEmail.setText(t.getEmail());
-        campoDataNascimento.setValue(t.getDataNascimento());
-        labelMensagem.setText("A editar: " + t.getNome() + " [" + t.getEstadoDisponibilidade() + "]");
+    private void guardar(Tripulante tripulante, boolean isNovo) {
+        Thread t = new Thread(() -> {
+            try {
+                if (isNovo) tripulanteService.registarTripulante(tripulante);
+                else        tripulanteService.editarTripulante(tripulante);
+                Platform.runLater(() -> {
+                    labelMensagem.setText(isNovo ? "Tripulante criado." : "Tripulante atualizado.");
+                    recarregar();
+                });
+            } catch (IllegalArgumentException | IllegalStateException e) {
+                Platform.runLater(() -> Dialogs.erro(e.getMessage()));
+            } catch (Exception e) {
+                Platform.runLater(() -> Dialogs.erro("Erro ao guardar: " + e.getMessage()));
+            }
+        });
+        t.setDaemon(true);
+        t.start();
     }
 
-    private void limpar() {
-        campoNome.clear();
-        campoCertificado.clear();
-        comboFuncao.setValue(null);
-        campoEmail.clear();
-        campoDataNascimento.setValue(null);
-    }
-
-    private String texto(Object o) { return o == null ? "" : o.toString(); }
+    private String str(Object o) { return o == null ? "" : o.toString(); }
 }

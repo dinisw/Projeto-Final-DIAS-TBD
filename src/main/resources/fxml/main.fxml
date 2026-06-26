@@ -8,30 +8,72 @@
             fx:controller="com.dias.navios.ui.controller.MainController"
             fx:id="rootPane">
 
+    <!-- Cabeçalho superior -->
     <top>
-        <HBox>
-            <padding><Insets top="14" right="20" bottom="14" left="20"/></padding>
-            <Label text="Gestao de Navios Petroleiros">
-                <font><Font size="18.0"/></font>
-            </Label>
-        </HBox>
+        <VBox>
+            <HBox alignment="CENTER_LEFT" spacing="14">
+                <padding><Insets top="14" right="20" bottom="14" left="20"/></padding>
+                <Label text="⚓">
+                    <font><Font size="22.0"/></font>
+                </Label>
+                <VBox>
+                    <Label text="SMF — Sistema de Gestão de Frota">
+                        <font><Font name="System Bold" size="16.0"/></font>
+                    </Label>
+                    <Label text="Navios Petroleiros  ·  ISEP  ·  DIAS 2025/26">
+                        <font><Font size="11.0"/></font>
+                    </Label>
+                </VBox>
+            </HBox>
+            <Separator/>
+        </VBox>
     </top>
 
+    <!-- Barra de navegação lateral -->
     <left>
-        <VBox spacing="6">
-            <padding><Insets top="14" right="10" bottom="14" left="10"/></padding>
-            <Button text="Navios"     onAction="#abrirNavios"     maxWidth="Infinity"/>
-            <Button text="Cargas"     onAction="#abrirCargas"     maxWidth="Infinity"/>
-            <Button text="Viagens"    onAction="#abrirViagens"    maxWidth="Infinity"/>
-            <Button text="Tripulacao" onAction="#abrirTripulacao" maxWidth="Infinity"/>
-            <Button text="Portos"     onAction="#abrirPortos"     maxWidth="Infinity"/>
+        <VBox spacing="4" minWidth="180">
+            <padding><Insets top="16" right="10" bottom="16" left="10"/></padding>
+
+            <Label text="MÓDULOS">
+                <font><Font name="System Bold" size="10.0"/></font>
+                <padding><Insets bottom="4" left="4"/></padding>
+            </Label>
+
+            <Button text="🚢  Navios"      onAction="#abrirNavios"     maxWidth="Infinity" prefHeight="36">
+                <tooltip><Tooltip text="Gerir a frota de navios petroleiros"/></tooltip>
+            </Button>
+            <Button text="🛢  Cargas"      onAction="#abrirCargas"     maxWidth="Infinity" prefHeight="36">
+                <tooltip><Tooltip text="Gerir o registo de cargas"/></tooltip>
+            </Button>
+            <Button text="🗺  Viagens"     onAction="#abrirViagens"    maxWidth="Infinity" prefHeight="36">
+                <tooltip><Tooltip text="Planear e gerir viagens"/></tooltip>
+            </Button>
+            <Button text="👤  Tripulação"  onAction="#abrirTripulacao" maxWidth="Infinity" prefHeight="36">
+                <tooltip><Tooltip text="Gerir tripulantes e certificações"/></tooltip>
+            </Button>
+
+            <Separator>
+                <padding><Insets top="6" bottom="6"/></padding>
+            </Separator>
+
+            <Button text="⚓  Portos"      onAction="#abrirPortos"     maxWidth="Infinity" prefHeight="36">
+                <tooltip><Tooltip text="Gerir portos e terminais"/></tooltip>
+            </Button>
         </VBox>
     </left>
 
+    <!-- Conteúdo principal (substituído a cada navegação) -->
     <center>
-        <Label text="Bem-vindo! Escolha um modulo na barra lateral.">
-            <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
-        </Label>
+        <VBox alignment="CENTER" spacing="16">
+            <padding><Insets top="40" right="40" bottom="40" left="40"/></padding>
+            <Label text="⚓">
+                <font><Font size="48.0"/></font>
+            </Label>
+            <Label text="Sistema de Gestão de Frota">
+                <font><Font name="System Bold" size="20.0"/></font>
+            </Label>
+            <Label text="Selecione um módulo na barra lateral para começar."/>
+        </VBox>
     </center>
 
 </BorderPane>
