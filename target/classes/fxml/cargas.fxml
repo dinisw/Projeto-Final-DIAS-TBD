@@ -1,57 +1,55 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.control.*?>
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.text.Font?>
+<?import javafx.scene.text.*?>
+<?import javafx.geometry.*?>
 
-<VBox xmlns:fx="http://javafx.com/fxml"
-      fx:controller="com.dias.navios.ui.controller.CargaController"
-      spacing="12">
-    <padding><Insets top="16" right="16" bottom="16" left="16"/></padding>
+<VBox spacing="0" xmlns="http://javafx.com/javafx/21"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.dias.navios.ui.controller.CargaController">
 
-    <Label text="Gestao de Cargas">
-        <font><Font size="16.0"/></font>
-    </Label>
+    <HBox alignment="CENTER_LEFT">
+        <padding><Insets top="12" right="16" bottom="8" left="16"/></padding>
+        <Label text="🛢  Gestão de Cargas">
+            <font><Font size="20"/></font>
+        </Label>
+    </HBox>
+
+    <Separator/>
+
+    <ToolBar>
+        <Button text="＋  Nova Carga" onAction="#novo" prefHeight="30">
+            <tooltip><Tooltip text="Registar uma nova carga"/></tooltip>
+        </Button>
+        <Separator orientation="VERTICAL"/>
+        <Button fx:id="btnEditar" text="✎  Editar" onAction="#editar" disable="true" prefHeight="30">
+            <tooltip><Tooltip text="Editar a carga selecionada (ou duplo-clique na tabela)"/></tooltip>
+        </Button>
+        <Button fx:id="btnApagar" text="🗑  Apagar" onAction="#apagar" disable="true" prefHeight="30">
+            <tooltip><Tooltip text="Apagar a carga selecionada"/></tooltip>
+        </Button>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Label fx:id="labelMensagem"/>
+    </ToolBar>
+
+    <Separator/>
 
     <TableView fx:id="tabela" VBox.vgrow="ALWAYS">
+        <columnResizePolicy>
+            <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+        </columnResizePolicy>
+        <placeholder>
+            <Label text="Nenhuma carga registada."/>
+        </placeholder>
         <columns>
-            <TableColumn fx:id="colDesignacao" text="Designacao"   prefWidth="170"/>
+            <TableColumn fx:id="colDesignacao" text="Designação"   prefWidth="200"/>
             <TableColumn fx:id="colTipo"       text="Tipo"         prefWidth="130"/>
-            <TableColumn fx:id="colVolume"     text="Volume (m3)"  prefWidth="90"/>
-            <TableColumn fx:id="colPeso"       text="Peso (t)"     prefWidth="80"/>
-            <TableColumn fx:id="colInflamavel" text="Inflamavel"   prefWidth="80"/>
-            <TableColumn fx:id="colCarga"      text="P. Carga"     prefWidth="120"/>
-            <TableColumn fx:id="colDescarga"   text="P. Descarga"  prefWidth="120"/>
+            <TableColumn fx:id="colVolume"     text="Volume"       prefWidth="100"/>
+            <TableColumn fx:id="colPeso"       text="Peso"         prefWidth="100"/>
+            <TableColumn fx:id="colInflamavel" text="Propriedades" prefWidth="110"/>
+            <TableColumn fx:id="colCarga"      text="Porto Carga"  prefWidth="150"/>
+            <TableColumn fx:id="colDescarga"   text="Porto Descarga" prefWidth="150"/>
         </columns>
     </TableView>
 
-    <GridPane hgap="10" vgap="8">
-        <Label text="Designacao:"             GridPane.rowIndex="0" GridPane.columnIndex="0"/>
-        <TextField fx:id="campoDesignacao"    GridPane.rowIndex="0" GridPane.columnIndex="1"/>
-        <Label text="Tipo:"                   GridPane.rowIndex="0" GridPane.columnIndex="2"/>
-        <ComboBox fx:id="comboTipo"           GridPane.rowIndex="0" GridPane.columnIndex="3"/>
-
-        <Label text="Volume (m3):"            GridPane.rowIndex="1" GridPane.columnIndex="0"/>
-        <TextField fx:id="campoVolume"        GridPane.rowIndex="1" GridPane.columnIndex="1"/>
-        <Label text="Peso (t):"               GridPane.rowIndex="1" GridPane.columnIndex="2"/>
-        <TextField fx:id="campoPeso"          GridPane.rowIndex="1" GridPane.columnIndex="3"/>
-
-        <Label text="Propriedades:"           GridPane.rowIndex="2" GridPane.columnIndex="0"/>
-        <CheckBox fx:id="checkInflamavel" text="Inflamavel" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
-        <CheckBox fx:id="checkCorrosiva"  text="Corrosiva"  GridPane.rowIndex="2" GridPane.columnIndex="2"/>
-        <CheckBox fx:id="checkToxica"     text="Toxica"     GridPane.rowIndex="2" GridPane.columnIndex="3"/>
-
-        <Label text="Porto de carga:"         GridPane.rowIndex="3" GridPane.columnIndex="0"/>
-        <ComboBox fx:id="comboPortoCarga"     GridPane.rowIndex="3" GridPane.columnIndex="1"/>
-        <Label text="Porto de descarga:"      GridPane.rowIndex="3" GridPane.columnIndex="2"/>
-        <ComboBox fx:id="comboPortoDescarga"  GridPane.rowIndex="3" GridPane.columnIndex="3"/>
-    </GridPane>
-
-    <HBox spacing="10">
-        <Button text="Novo"    onAction="#novo"/>
-        <Button text="Guardar" onAction="#guardar"/>
-        <Button text="Apagar"  onAction="#apagar"/>
-    </HBox>
-
-    <Label fx:id="labelMensagem"/>
 </VBox>

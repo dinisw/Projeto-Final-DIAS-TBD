@@ -1,115 +1,117 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.control.*?>
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.text.Font?>
+<?import javafx.scene.text.*?>
+<?import javafx.geometry.*?>
 
-<VBox xmlns:fx="http://javafx.com/fxml"
-      fx:controller="com.dias.navios.ui.controller.ViagemController"
-      spacing="8">
-    <padding><Insets top="12" right="12" bottom="12" left="12"/></padding>
+<VBox spacing="0" xmlns="http://javafx.com/javafx/21"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.dias.navios.ui.controller.ViagemController">
 
-    <Label text="Gestão de Viagens">
-        <font><Font size="16.0"/></font>
-    </Label>
+    <HBox alignment="CENTER_LEFT">
+        <padding><Insets top="12" right="16" bottom="8" left="16"/></padding>
+        <Label text="🗺  Gestão de Viagens">
+            <font><Font size="20"/></font>
+        </Label>
+    </HBox>
+
+    <Separator/>
+
+    <ToolBar>
+        <Button text="＋  Nova Viagem" onAction="#novo" prefHeight="30">
+            <tooltip><Tooltip text="Planear uma nova viagem"/></tooltip>
+        </Button>
+        <Separator orientation="VERTICAL"/>
+        <Button fx:id="btnEditar"   text="✎  Editar"         onAction="#editar"          disable="true" prefHeight="30"/>
+        <Button fx:id="btnAvancar"  text="▶  Avançar Estado" onAction="#avancarEstado"    disable="true" prefHeight="30">
+            <tooltip><Tooltip text="Avançar o estado da viagem (PLANEADA → EM_CURSO → CONCLUÍDA)"/></tooltip>
+        </Button>
+        <Button fx:id="btnCancelar" text="✕  Cancelar"       onAction="#cancelarViagem"  disable="true" prefHeight="30">
+            <tooltip><Tooltip text="Cancelar a viagem selecionada"/></tooltip>
+        </Button>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Label fx:id="labelMensagem"/>
+    </ToolBar>
+
+    <Separator/>
 
     <!-- Tabela principal de viagens -->
-    <TableView fx:id="tabela" VBox.vgrow="ALWAYS" prefHeight="200">
+    <TableView fx:id="tabela" prefHeight="260" VBox.vgrow="SOMETIMES">
+        <columnResizePolicy>
+            <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+        </columnResizePolicy>
+        <placeholder>
+            <Label text="Nenhuma viagem registada."/>
+        </placeholder>
         <columns>
-            <TableColumn fx:id="colId"      text="ID"        prefWidth="45"/>
-            <TableColumn fx:id="colNavio"   text="Navio"     prefWidth="150"/>
-            <TableColumn fx:id="colOrigem"  text="Origem"    prefWidth="120"/>
-            <TableColumn fx:id="colDestino" text="Destino"   prefWidth="120"/>
-            <TableColumn fx:id="colPartida" text="Partida"   prefWidth="95"/>
-            <TableColumn fx:id="colChegada" text="Chegada"   prefWidth="95"/>
-            <TableColumn fx:id="colEstado"  text="Estado"    prefWidth="110"/>
+            <TableColumn fx:id="colId"          text="#"            prefWidth="50"/>
+            <TableColumn fx:id="colNavio"        text="Navio"        prefWidth="160"/>
+            <TableColumn fx:id="colOrigem"       text="Origem"       prefWidth="130"/>
+            <TableColumn fx:id="colDestino"      text="Destino"      prefWidth="130"/>
+            <TableColumn fx:id="colPartida"      text="Partida"      prefWidth="110"/>
+            <TableColumn fx:id="colChegada"      text="Chegada (Prev.)" prefWidth="120"/>
+            <TableColumn fx:id="colChegadaReal"  text="Chegada (Real)"  prefWidth="120"/>
+            <TableColumn fx:id="colEstado"       text="Estado"       prefWidth="110"/>
         </columns>
     </TableView>
 
-    <!-- Formulário criar/editar viagem -->
-    <TitledPane text="Dados da Viagem" collapsible="false">
-        <VBox spacing="6">
-            <padding><Insets top="8" right="8" bottom="8" left="8"/></padding>
+    <Separator/>
 
-            <GridPane hgap="10" vgap="6">
-                <Label text="Navio:"            GridPane.rowIndex="0" GridPane.columnIndex="0"/>
-                <ComboBox fx:id="comboNavio"    GridPane.rowIndex="0" GridPane.columnIndex="1" prefWidth="180"/>
+    <!-- Sub-tabs: cargas e tripulantes da viagem selecionada -->
+    <TabPane VBox.vgrow="ALWAYS" tabClosingPolicy="UNAVAILABLE">
 
-                <Label text="Porto de origem:"  GridPane.rowIndex="0" GridPane.columnIndex="2"/>
-                <ComboBox fx:id="comboOrigem"   GridPane.rowIndex="0" GridPane.columnIndex="3" prefWidth="160"/>
-
-                <Label text="Porto de destino:" GridPane.rowIndex="0" GridPane.columnIndex="4"/>
-                <ComboBox fx:id="comboDestino"  GridPane.rowIndex="0" GridPane.columnIndex="5" prefWidth="160"/>
-
-                <Label text="Data de partida:"  GridPane.rowIndex="1" GridPane.columnIndex="0"/>
-                <DatePicker fx:id="dataPartida" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
-
-                <Label text="Chegada prevista:" GridPane.rowIndex="1" GridPane.columnIndex="2"/>
-                <DatePicker fx:id="dataChegada" GridPane.rowIndex="1" GridPane.columnIndex="3"/>
-            </GridPane>
-
-            <HBox spacing="8">
-                <Button text="Nova"            onAction="#novo"/>
-                <Button text="Criar Viagem"    onAction="#criarViagem"/>
-                <Button text="Atualizar"       onAction="#atualizarViagem"/>
-                <Button text="Avançar Estado"  onAction="#avancarEstado"/>
-                <Button text="Cancelar Viagem" onAction="#cancelarViagem"/>
-            </HBox>
-        </VBox>
-    </TitledPane>
-
-    <!-- Painel de gestão de cargas e tripulantes (só activo com viagem seleccionada) -->
-    <TabPane VBox.vgrow="ALWAYS" prefHeight="220">
-
-        <!-- TAB: Cargas -->
-        <Tab text="Cargas da Viagem" closable="false">
+        <!-- Tab Cargas -->
+        <Tab text="🛢  Cargas da Viagem">
             <VBox spacing="8">
-                <padding><Insets top="8" right="8" bottom="8" left="8"/></padding>
-
-                <TableView fx:id="tabelaCargas" VBox.vgrow="ALWAYS" prefHeight="130">
+                <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
+                <TableView fx:id="tabelaCargas" prefHeight="160" VBox.vgrow="ALWAYS">
+                    <columnResizePolicy>
+                        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+                    </columnResizePolicy>
+                    <placeholder>
+                        <Label text="Nenhuma carga associada a esta viagem."/>
+                    </placeholder>
                     <columns>
-                        <TableColumn fx:id="colCargaDesignacao" text="Designação"  prefWidth="200"/>
-                        <TableColumn fx:id="colCargaTipo"       text="Tipo"         prefWidth="130"/>
-                        <TableColumn fx:id="colCargaPeso"       text="Peso (t)"     prefWidth="90"/>
-                        <TableColumn fx:id="colCargaVolume"     text="Volume (m³)"  prefWidth="90"/>
+                        <TableColumn fx:id="colCargaDesignacao" text="Designação" prefWidth="200"/>
+                        <TableColumn fx:id="colCargaTipo"       text="Tipo"       prefWidth="130"/>
+                        <TableColumn fx:id="colCargaPeso"       text="Peso (t)"   prefWidth="100"/>
+                        <TableColumn fx:id="colCargaVolume"     text="Volume (m³)" prefWidth="110"/>
                     </columns>
-                    <placeholder><Label text="Nenhuma carga associada a esta viagem."/></placeholder>
                 </TableView>
-
                 <HBox spacing="8" alignment="CENTER_LEFT">
-                    <ComboBox fx:id="comboCarga" prefWidth="280"
-                              promptText="Selecione uma carga para adicionar"/>
-                    <Button text="Adicionar Carga"  onAction="#adicionarCarga"/>
-                    <Button text="Remover Selecionada" onAction="#removerCarga"/>
+                    <ComboBox fx:id="comboCarga" promptText="Selecionar carga…" prefWidth="280"/>
+                    <Button text="＋  Adicionar" onAction="#adicionarCarga" prefHeight="28"/>
+                    <Button text="🗑  Remover"   onAction="#removerCarga"   prefHeight="28"/>
                 </HBox>
             </VBox>
         </Tab>
 
-        <!-- TAB: Tripulação -->
-        <Tab text="Tripulação da Viagem" closable="false">
+        <!-- Tab Tripulantes -->
+        <Tab text="👤  Tripulantes da Viagem">
             <VBox spacing="8">
-                <padding><Insets top="8" right="8" bottom="8" left="8"/></padding>
-
-                <TableView fx:id="tabelaTripulantes" VBox.vgrow="ALWAYS" prefHeight="130">
+                <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
+                <TableView fx:id="tabelaTripulantes" prefHeight="160" VBox.vgrow="ALWAYS">
+                    <columnResizePolicy>
+                        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+                    </columnResizePolicy>
+                    <placeholder>
+                        <Label text="Nenhum tripulante associado a esta viagem."/>
+                    </placeholder>
                     <columns>
-                        <TableColumn fx:id="colTripNome"        text="Nome"          prefWidth="200"/>
-                        <TableColumn fx:id="colTripFuncao"      text="Função"        prefWidth="130"/>
-                        <TableColumn fx:id="colTripCertificado" text="Certificado"   prefWidth="130"/>
-                        <TableColumn fx:id="colTripDisponivel"  text="Disponível"    prefWidth="80"/>
+                        <TableColumn fx:id="colTripNome"        text="Nome"       prefWidth="200"/>
+                        <TableColumn fx:id="colTripFuncao"      text="Função"     prefWidth="150"/>
+                        <TableColumn fx:id="colTripCertificado" text="Certificado" prefWidth="140"/>
+                        <TableColumn fx:id="colTripDisponivel"  text="Estado"     prefWidth="120"/>
                     </columns>
-                    <placeholder><Label text="Nenhum tripulante associado a esta viagem."/></placeholder>
                 </TableView>
-
                 <HBox spacing="8" alignment="CENTER_LEFT">
-                    <ComboBox fx:id="comboTripulante" prefWidth="280"
-                              promptText="Selecione um tripulante para adicionar"/>
-                    <Button text="Adicionar Tripulante" onAction="#adicionarTripulante"/>
-                    <Button text="Remover Selecionado"  onAction="#removerTripulante"/>
+                    <ComboBox fx:id="comboTripulante" promptText="Selecionar tripulante…" prefWidth="280"/>
+                    <Button text="＋  Adicionar" onAction="#adicionarTripulante" prefHeight="28"/>
+                    <Button text="🗑  Remover"   onAction="#removerTripulante"   prefHeight="28"/>
                 </HBox>
             </VBox>
         </Tab>
 
     </TabPane>
 
-    <Label fx:id="labelMensagem"/>
 </VBox>
