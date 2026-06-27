@@ -3,6 +3,7 @@ package com.dias.navios.ui;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
+import javafx.stage.Modality;
 
 import java.util.Optional;
 
@@ -29,6 +30,7 @@ public final class Dialogs {
         Alert alert = new Alert(AlertType.CONFIRMATION, mensagem, ButtonType.OK, ButtonType.CANCEL);
         alert.setTitle("Confirmacao");
         alert.setHeaderText(null);
+        alert.initModality(Modality.APPLICATION_MODAL);
         Optional<ButtonType> resposta = alert.showAndWait();
         return resposta.isPresent() && resposta.get() == ButtonType.OK;
     }
@@ -37,6 +39,7 @@ public final class Dialogs {
         Alert alert = new Alert(tipo, mensagem);
         alert.setTitle(titulo);
         alert.setHeaderText(null);
+        alert.initModality(Modality.APPLICATION_MODAL);
         alert.showAndWait();
     }
 }

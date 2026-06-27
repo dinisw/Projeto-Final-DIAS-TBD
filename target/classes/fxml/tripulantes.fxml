@@ -42,11 +42,12 @@
             <Label text="Nenhum tripulante registado."/>
         </placeholder>
         <columns>
-            <TableColumn fx:id="colNome"        text="Nome"         prefWidth="220"/>
-            <TableColumn fx:id="colCertificado" text="Certificado"  prefWidth="150"/>
-            <TableColumn fx:id="colFuncao"      text="Função"       prefWidth="160"/>
-            <TableColumn fx:id="colEstado"      text="Estado"       prefWidth="130"/>
-            <TableColumn fx:id="colEmail"       text="E-mail"       prefWidth="200"/>
+            <TableColumn fx:id="colNome"        text="Nome"           prefWidth="200"/>
+            <TableColumn fx:id="colCertificado" text="Certificado"   prefWidth="130"/>
+            <TableColumn fx:id="colFuncao"      text="Função"        prefWidth="140"/>
+            <TableColumn fx:id="colEstado"      text="Estado"        prefWidth="110"/>
+            <TableColumn fx:id="colEmail"       text="E-mail"        prefWidth="180"/>
+            <TableColumn fx:id="colNascimento"  text="Dt. Nascimento" prefWidth="120"/>
         </columns>
     </TableView>
 

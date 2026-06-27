@@ -67,8 +67,10 @@ public class ViagemController {
 
     private final Map<Integer, Navio> naviosPorId = new HashMap<>();
     private final Map<Integer, Porto> portosPorId = new HashMap<>();
-    private List<Navio> naviosCache = new ArrayList<>();
-    private List<Porto> portosCache = new ArrayList<>();
+    private List<Navio>      naviosCache      = new ArrayList<>();
+    private List<Porto>      portosCache      = new ArrayList<>();
+    private List<Carga>      cargasCache      = new ArrayList<>();
+    private List<Tripulante> tripulantesCache = new ArrayList<>();
 
     private Viagem selecionado;
 
@@ -148,6 +150,8 @@ public class ViagemController {
                     portos.forEach(p -> portosPorId.put(p.getId(), p));
                     portosCache = portos;
 
+                    cargasCache      = cargas;
+                    tripulantesCache = trips;
                     tabela.setItems(FXCollections.observableArrayList(viagens));
                     comboCarga.setItems(FXCollections.observableArrayList(cargas));
                     comboTripulante.setItems(FXCollections.observableArrayList(trips));
@@ -169,6 +173,18 @@ public class ViagemController {
                 Platform.runLater(() -> {
                     tabelaCargas.setItems(FXCollections.observableArrayList(cargas));
                     tabelaTripulantes.setItems(FXCollections.observableArrayList(trips));
+
+                    // filtra combos para só mostrar itens ainda não associados
+                    java.util.Set<Integer> idsCargas = new java.util.HashSet<>();
+                    cargas.forEach(c -> idsCargas.add(c.getId()));
+                    comboCarga.setItems(FXCollections.observableArrayList(
+                            cargasCache.stream().filter(c -> !idsCargas.contains(c.getId())).toList()));
+
+                    java.util.Set<Integer> idsTrips = new java.util.HashSet<>();
+                    trips.forEach(tr -> idsTrips.add(tr.getId()));
+                    comboTripulante.setItems(FXCollections.observableArrayList(
+                            tripulantesCache.stream().filter(tr -> !idsTrips.contains(tr.getId())).toList()));
+
                     if (selecionado != null)
                         labelMensagem.setText("Viagem #" + selecionado.getId() + "  [" + selecionado.getEstado() + "]");
                 });

@@ -8,6 +8,7 @@ import javafx.scene.layout.GridPane;
 import javafx.util.StringConverter;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
@@ -29,13 +30,16 @@ public class FormDialogs {
         dlg.getDialogPane().getButtonTypes().addAll(btnOk, ButtonType.CANCEL);
 
         GridPane g = grid();
-        TextField fNome   = field(existente != null ? existente.getNome()   : "", "Nome do porto");
-        TextField fPais   = field(existente != null ? existente.getPais()   : "", "País");
+        TextField fNome = field(existente != null ? existente.getNome() : "", "Nome do porto");
+        TextField fPais = field(existente != null ? existente.getPais() : "", "País");
         TextField fCodigo = field(existente != null ? existente.getCodigo() : "", "Código (ex: PTLEI)");
 
-        g.add(lbl("Nome:"),   0, 0); g.add(fNome,   1, 0);
-        g.add(lbl("País:"),   0, 1); g.add(fPais,   1, 1);
-        g.add(lbl("Código:"), 0, 2); g.add(fCodigo, 1, 2);
+        g.add(lbl("Nome:"), 0, 0);
+        g.add(fNome, 1, 0);
+        g.add(lbl("País:"), 0, 1);
+        g.add(fPais, 1, 1);
+        g.add(lbl("Código:"), 0, 2);
+        g.add(fCodigo, 1, 2);
         dlg.getDialogPane().setContent(g);
 
         javafx.scene.Node okBtn = dlg.getDialogPane().lookupButton(btnOk);
@@ -47,7 +51,8 @@ public class FormDialogs {
         fCodigo.textProperty().addListener((o, a, n) -> validar.run());
 
         dlg.setResultConverter(bt -> {
-            if (bt != btnOk) return null;
+            if (bt != btnOk)
+                return null;
             Porto p = new Porto();
             p.setNome(fNome.getText().trim());
             p.setPais(fPais.getText().trim());
@@ -69,45 +74,66 @@ public class FormDialogs {
         dlg.getDialogPane().getButtonTypes().addAll(btnOk, ButtonType.CANCEL);
 
         GridPane g = grid();
-        TextField fNome  = field(existente != null ? existente.getNome()       : "", "Nome do navio");
-        TextField fIMO   = field(existente != null ? existente.getCodigoIMO()  : "", "IMO1234567");
-        TextField fCap   = field(existente != null ? fmtDouble(existente.getCapacidadeMaxima()) : "", "Capacidade em toneladas");
-        TextField fTanq  = field(existente != null ? String.valueOf(existente.getNumTanques())  : "", "Número de tanques");
-        TextField fBand  = field(existente != null ? existente.getBandeira()   : "", "Bandeira (país)");
-        TextField fAno   = field(existente != null ? String.valueOf(existente.getAnoFabrico())  : "", "Ano de fabrico");
+        TextField fNome = field(existente != null ? existente.getNome() : "", "Nome do navio");
+        TextField fIMO = field(existente != null ? existente.getCodigoIMO() : "", "IMO1234567");
+        TextField fCap = field(existente != null ? fmtDouble(existente.getCapacidadeMaxima()) : "",
+                "Capacidade em toneladas");
+        TextField fTanq = field(existente != null ? String.valueOf(existente.getNumTanques()) : "",
+                "Número de tanques");
+        TextField fBand = field(existente != null ? existente.getBandeira() : "", "Bandeira (país)");
+        TextField fAno = field(existente != null ? String.valueOf(existente.getAnoFabrico()) : "", "Ano de fabrico");
 
-        ComboBox<TipoNavio>   cbTipo   = combo(TipoNavio.values(),   existente != null ? existente.getTipo()   : null, "Tipo de navio");
-        ComboBox<EstadoNavio> cbEstado = combo(EstadoNavio.values(), existente != null ? existente.getEstado() : null, "Estado");
-        ComboBox<Porto>       cbPorto  = new ComboBox<>();
+        ComboBox<TipoNavio> cbTipo = combo(TipoNavio.values(), existente != null ? existente.getTipo() : null,
+                "Tipo de navio");
+        ComboBox<EstadoNavio> cbEstado = combo(EstadoNavio.values(), existente != null ? existente.getEstado() : null,
+                "Estado");
+        ComboBox<Porto> cbPorto = new ComboBox<>();
         cbPorto.getItems().addAll(portos);
         cbPorto.setPromptText("Porto atual");
         cbPorto.setConverter(new StringConverter<>() {
-            @Override public String toString(Porto p)    { return p == null ? "" : p.getNome(); }
-            @Override public Porto fromString(String s)  { return null; }
+            @Override
+            public String toString(Porto p) {
+                return p == null ? "" : p.getNome();
+            }
+
+            @Override
+            public Porto fromString(String s) {
+                return null;
+            }
         });
         if (existente != null) {
-            portos.stream().filter(p -> p.getId() == existente.getPortoAtualId()).findFirst().ifPresent(cbPorto::setValue);
+            portos.stream().filter(p -> p.getId() == existente.getPortoAtualId()).findFirst()
+                    .ifPresent(cbPorto::setValue);
         }
 
         int r = 0;
-        g.add(lbl("Nome:"),       0, r); g.add(fNome,   1, r++);
-        g.add(lbl("Código IMO:"), 0, r); g.add(fIMO,    1, r++);
-        g.add(lbl("Tipo:"),       0, r); g.add(cbTipo,  1, r++);
-        g.add(lbl("Estado:"),     0, r); g.add(cbEstado,1, r++);
-        g.add(lbl("Capacidade (t):"), 0, r); g.add(fCap, 1, r++);
-        g.add(lbl("Nº Tanques:"), 0, r); g.add(fTanq,  1, r++);
-        g.add(lbl("Bandeira:"),   0, r); g.add(fBand,  1, r++);
-        g.add(lbl("Ano Fabrico:"),0, r); g.add(fAno,   1, r++);
-        g.add(lbl("Porto Atual:"),0, r); g.add(cbPorto,1, r++);
+        g.add(lbl("Nome:"), 0, r);
+        g.add(fNome, 1, r++);
+        g.add(lbl("Código IMO:"), 0, r);
+        g.add(fIMO, 1, r++);
+        g.add(lbl("Tipo:"), 0, r);
+        g.add(cbTipo, 1, r++);
+        g.add(lbl("Estado:"), 0, r);
+        g.add(cbEstado, 1, r++);
+        g.add(lbl("Capacidade (t):"), 0, r);
+        g.add(fCap, 1, r++);
+        g.add(lbl("Nº Tanques:"), 0, r);
+        g.add(fTanq, 1, r++);
+        g.add(lbl("Bandeira:"), 0, r);
+        g.add(fBand, 1, r++);
+        g.add(lbl("Ano Fabrico:"), 0, r);
+        g.add(fAno, 1, r++);
+        g.add(lbl("Porto Atual:"), 0, r);
+        g.add(cbPorto, 1, r++);
         dlg.getDialogPane().setContent(g);
 
         javafx.scene.Node okBtn = dlg.getDialogPane().lookupButton(btnOk);
         okBtn.setDisable(true);
         Runnable validar = () -> okBtn.setDisable(
                 fNome.getText().isBlank() || fIMO.getText().isBlank() ||
-                fCap.getText().isBlank()  || fTanq.getText().isBlank() ||
-                fBand.getText().isBlank() || fAno.getText().isBlank()  ||
-                cbTipo.getValue() == null || cbEstado.getValue() == null || cbPorto.getValue() == null);
+                        fCap.getText().isBlank() || fTanq.getText().isBlank() ||
+                        fBand.getText().isBlank() || fAno.getText().isBlank() ||
+                        cbTipo.getValue() == null || cbEstado.getValue() == null || cbPorto.getValue() == null);
         fNome.textProperty().addListener((o, a, n) -> validar.run());
         fIMO.textProperty().addListener((o, a, n) -> validar.run());
         fCap.textProperty().addListener((o, a, n) -> validar.run());
@@ -119,11 +145,13 @@ public class FormDialogs {
         cbPorto.valueProperty().addListener((o, a, n) -> validar.run());
 
         dlg.setResultConverter(bt -> {
-            if (bt != btnOk) return null;
-            Double cap  = parseDouble(fCap.getText());
+            if (bt != btnOk)
+                return null;
+            Double cap = parseDouble(fCap.getText());
             Integer tanq = parseInt(fTanq.getText());
-            Integer ano  = parseInt(fAno.getText());
-            if (cap == null || tanq == null || ano == null) return null;
+            Integer ano = parseInt(fAno.getText());
+            if (cap == null || tanq == null || ano == null)
+                return null;
             Navio n = new Navio();
             n.setNome(fNome.getText().trim());
             n.setCodigoIMO(fIMO.getText().trim());
@@ -151,41 +179,66 @@ public class FormDialogs {
         dlg.getDialogPane().getButtonTypes().addAll(btnOk, ButtonType.CANCEL);
 
         GridPane g = grid();
-        TextField fDesig  = field(existente != null ? existente.getDesignacao()         : "", "Designação da carga");
-        TextField fVolume = field(existente != null ? fmtDouble(existente.getVolume())  : "", "Volume em m³");
-        TextField fPeso   = field(existente != null ? fmtDouble(existente.getPeso())    : "", "Peso em toneladas");
+        TextField fDesig = field(existente != null ? existente.getDesignacao() : "", "Designação da carga");
+        TextField fVolume = field(existente != null ? fmtDouble(existente.getVolume()) : "", "Volume em m³");
+        TextField fPeso = field(existente != null ? fmtDouble(existente.getPeso()) : "", "Peso em toneladas");
 
-        ComboBox<TipoCarga> cbTipo = combo(TipoCarga.values(), existente != null ? existente.getTipo() : null, "Tipo de carga");
+        ComboBox<TipoCarga> cbTipo = combo(TipoCarga.values(), existente != null ? existente.getTipo() : null,
+                "Tipo de carga");
 
-        CheckBox chkInflam  = new CheckBox("Inflamável");
-        CheckBox chkCorros  = new CheckBox("Corrosiva");
-        CheckBox chkToxica  = new CheckBox("Tóxica");
+        CheckBox chkInflam = new CheckBox("🔥  Inflamável  — risco de incêndio ou explosão");
+        CheckBox chkCorros = new CheckBox("🧪  Corrosiva   — danifica materiais e tecidos");
+        CheckBox chkToxica = new CheckBox("☠️  Tóxica      — perigosa para a saúde humana");
+
+        // preenche automaticamente ao escolher tipo; permite override manual
+        Runnable autoFill = () -> {
+            TipoCarga t = cbTipo.getValue();
+            if (t != null) {
+                chkInflam.setSelected(t.isInflamavel());
+                chkCorros.setSelected(t.isCorrosiva());
+                chkToxica.setSelected(t.isToxica());
+            }
+        };
+        cbTipo.valueProperty().addListener((o, a, n) -> autoFill.run());
+
+        // ao editar, mostra os valores guardados (não os do enum)
         if (existente != null) {
             chkInflam.setSelected(existente.isInflamavel());
             chkCorros.setSelected(existente.isCorrosiva());
             chkToxica.setSelected(existente.isToxica());
         }
 
-        ComboBox<Porto> cbCarga   = portoCombo(portos, existente != null ? existente.getPortoCarregamentoId()  : -1, "Porto de carga");
-        ComboBox<Porto> cbDescarga = portoCombo(portos, existente != null ? existente.getPortoDescargaId()     : -1, "Porto de descarga");
+        ComboBox<Porto> cbCarga = portoCombo(portos, existente != null ? existente.getPortoCarregamentoId() : -1,
+                "Porto de carga");
+        ComboBox<Porto> cbDescarga = portoCombo(portos, existente != null ? existente.getPortoDescargaId() : -1,
+                "Porto de descarga");
 
         int r = 0;
-        g.add(lbl("Designação:"),     0, r); g.add(fDesig,     1, r++);
-        g.add(lbl("Tipo:"),           0, r); g.add(cbTipo,     1, r++);
-        g.add(lbl("Volume (m³):"),    0, r); g.add(fVolume,    1, r++);
-        g.add(lbl("Peso (t):"),       0, r); g.add(fPeso,      1, r++);
-        g.add(lbl("Propriedades:"),   0, r); g.add(chkInflam,  1, r++);
-        g.add(new Label(""),          0, r); g.add(chkCorros,  1, r++);
-        g.add(new Label(""),          0, r); g.add(chkToxica,  1, r++);
-        g.add(lbl("Porto Carga:"),    0, r); g.add(cbCarga,    1, r++);
-        g.add(lbl("Porto Descarga:"), 0, r); g.add(cbDescarga, 1, r++);
+        g.add(lbl("Designação:"), 0, r);
+        g.add(fDesig, 1, r++);
+        g.add(lbl("Tipo:"), 0, r);
+        g.add(cbTipo, 1, r++);
+        g.add(lbl("Volume (m³):"), 0, r);
+        g.add(fVolume, 1, r++);
+        g.add(lbl("Peso (t):"), 0, r);
+        g.add(fPeso, 1, r++);
+        g.add(lbl("Propriedades:"), 0, r);
+        g.add(chkInflam, 1, r++);
+        g.add(new Label(""), 0, r);
+        g.add(chkCorros, 1, r++);
+        g.add(new Label(""), 0, r);
+        g.add(chkToxica, 1, r++);
+        g.add(lbl("Porto Carga:"), 0, r);
+        g.add(cbCarga, 1, r++);
+        g.add(lbl("Porto Descarga:"), 0, r);
+        g.add(cbDescarga, 1, r++);
         dlg.getDialogPane().setContent(g);
 
         javafx.scene.Node okBtn = dlg.getDialogPane().lookupButton(btnOk);
         okBtn.setDisable(true);
         Runnable validar = () -> okBtn.setDisable(
                 fDesig.getText().isBlank() || fVolume.getText().isBlank() || fPeso.getText().isBlank() ||
-                cbTipo.getValue() == null  || cbCarga.getValue() == null  || cbDescarga.getValue() == null);
+                        cbTipo.getValue() == null || cbCarga.getValue() == null || cbDescarga.getValue() == null);
         fDesig.textProperty().addListener((o, a, n) -> validar.run());
         fVolume.textProperty().addListener((o, a, n) -> validar.run());
         fPeso.textProperty().addListener((o, a, n) -> validar.run());
@@ -194,10 +247,12 @@ public class FormDialogs {
         cbDescarga.valueProperty().addListener((o, a, n) -> validar.run());
 
         dlg.setResultConverter(bt -> {
-            if (bt != btnOk) return null;
+            if (bt != btnOk)
+                return null;
             Double vol = parseDouble(fVolume.getText());
             Double pes = parseDouble(fPeso.getText());
-            if (vol == null || pes == null) return null;
+            if (vol == null || pes == null)
+                return null;
             Carga c = new Carga();
             c.setDesignacao(fDesig.getText().trim());
             c.setTipo(cbTipo.getValue());
@@ -225,9 +280,9 @@ public class FormDialogs {
         dlg.getDialogPane().getButtonTypes().addAll(btnOk, ButtonType.CANCEL);
 
         GridPane g = grid();
-        TextField fNome  = field(existente != null ? existente.getNome()              : "", "Nome completo");
-        TextField fCert  = field(existente != null ? existente.getNumeroCertificado() : "", "Nº de certificado");
-        TextField fEmail = field(existente != null ? existente.getEmail()             : "", "E-mail");
+        TextField fNome = field(existente != null ? existente.getNome() : "", "Nome completo");
+        TextField fCert = field(existente != null ? existente.getNumeroCertificado() : "", "Nº de certificado");
+        TextField fEmail = field(existente != null ? existente.getEmail() : "", "E-mail");
 
         ComboBox<FuncaoTripulante> cbFuncao = combo(FuncaoTripulante.values(),
                 existente != null ? existente.getFuncao() : null, "Função");
@@ -235,29 +290,49 @@ public class FormDialogs {
         ToggleSwitch chkDisp = new ToggleSwitch("Disponível");
         chkDisp.setSelected(existente == null || "DISPONIVEL".equalsIgnoreCase(existente.getEstadoDisponibilidade()));
 
+        DatePicker dpNasc = datePicker(existente != null ? existente.getDataNascimento() : null);
+
         int r = 0;
-        g.add(lbl("Nome:"),        0, r); g.add(fNome,   1, r++);
-        g.add(lbl("Certificado:"), 0, r); g.add(fCert,   1, r++);
-        g.add(lbl("Função:"),      0, r); g.add(cbFuncao,1, r++);
-        g.add(lbl("E-mail:"),      0, r); g.add(fEmail,  1, r++);
-        g.add(lbl("Estado:"),      0, r); g.add(chkDisp, 1, r++);
+        g.add(lbl("Nome:"), 0, r);
+        g.add(fNome, 1, r++);
+        g.add(lbl("Certificado:"), 0, r);
+        g.add(fCert, 1, r++);
+        g.add(lbl("Função:"), 0, r);
+        g.add(cbFuncao, 1, r++);
+        g.add(lbl("E-mail:"), 0, r);
+        g.add(fEmail, 1, r++);
+        g.add(lbl("Dt. Nascimento:"), 0, r);
+        g.add(dpNasc, 1, r++);
+        g.add(lbl("Estado:"), 0, r);
+        g.add(chkDisp, 1, r++);
         dlg.getDialogPane().setContent(g);
 
         javafx.scene.Node okBtn = dlg.getDialogPane().lookupButton(btnOk);
         okBtn.setDisable(true);
-        Runnable validar = () -> okBtn.setDisable(
-                fNome.getText().isBlank() || fCert.getText().isBlank() || cbFuncao.getValue() == null);
+        Runnable validar = () -> {
+            boolean nascimentoValido = dpNasc.getValue() == null
+                    || dpNasc.getValue().isBefore(LocalDate.now().minusYears(18));
+            okBtn.setDisable(
+                    fNome.getText().isBlank() || fCert.getText().isBlank()
+                            || cbFuncao.getValue() == null || !nascimentoValido);
+        };
         fNome.textProperty().addListener((o, a, n) -> validar.run());
         fCert.textProperty().addListener((o, a, n) -> validar.run());
         cbFuncao.valueProperty().addListener((o, a, n) -> validar.run());
+        dpNasc.valueProperty().addListener((o, a, n) -> validar.run());
+        chkDisp.selectedProperty().addListener((o, a, n) -> validar.run());
+
+        validar.run();
 
         dlg.setResultConverter(bt -> {
-            if (bt != btnOk) return null;
+            if (bt != btnOk)
+                return null;
             Tripulante t = new Tripulante();
             t.setNome(fNome.getText().trim());
             t.setNumeroCertificado(fCert.getText().trim());
             t.setFuncao(cbFuncao.getValue());
             t.setEmail(fEmail.getText().trim());
+            t.setDataNascimento(dpNasc.getValue());
             t.setEstadoDisponibilidade(chkDisp.isSelected() ? "DISPONIVEL" : "INDISPONIVEL");
             return t;
         });
@@ -281,35 +356,47 @@ public class FormDialogs {
         cbNavio.getItems().addAll(navios);
         cbNavio.setPromptText("Selecionar navio…");
         cbNavio.setConverter(new StringConverter<>() {
-            @Override public String toString(Navio n)   { return n == null ? "" : n.getNome() + "  [" + n.getTipo() + "]"; }
-            @Override public Navio fromString(String s) { return null; }
+            @Override
+            public String toString(Navio n) {
+                return n == null ? "" : n.getNome() + "  [" + n.getTipo() + "]";
+            }
+
+            @Override
+            public Navio fromString(String s) {
+                return null;
+            }
         });
 
-        ComboBox<Porto> cbOrigem  = portoCombo(portos, existente != null ? existente.getPortoOrigemId()   : -1, "Porto de origem");
-        ComboBox<Porto> cbDestino = portoCombo(portos, existente != null ? existente.getPortoDestinoId()  : -1, "Porto de destino");
+        ComboBox<Porto> cbOrigem = portoCombo(portos, existente != null ? existente.getPortoOrigemId() : -1,
+                "Porto de origem");
+        ComboBox<Porto> cbDestino = portoCombo(portos, existente != null ? existente.getPortoDestinoId() : -1,
+                "Porto de destino");
 
-        DatePicker dpPartida  = new DatePicker(existente != null ? existente.getDataPartida()        : LocalDate.now());
-        DatePicker dpChegada  = new DatePicker(existente != null ? existente.getDataChegadaPrevista(): LocalDate.now().plusDays(7));
-        dpPartida.setPromptText("Data de partida");
-        dpChegada.setPromptText("Data de chegada prevista");
+        DatePicker dpPartida = datePicker(existente != null ? existente.getDataPartida()         : LocalDate.now());
+        DatePicker dpChegada = datePicker(existente != null ? existente.getDataChegadaPrevista() : LocalDate.now().plusDays(7));
 
         if (existente != null) {
             navios.stream().filter(n -> n.getId() == existente.getNavioId()).findFirst().ifPresent(cbNavio::setValue);
         }
 
         int r = 0;
-        g.add(lbl("Navio:"),    0, r); g.add(cbNavio,   1, r++);
-        g.add(lbl("Origem:"),   0, r); g.add(cbOrigem,  1, r++);
-        g.add(lbl("Destino:"),  0, r); g.add(cbDestino, 1, r++);
-        g.add(lbl("Partida:"),  0, r); g.add(dpPartida, 1, r++);
-        g.add(lbl("Chegada Prev.:"), 0, r); g.add(dpChegada, 1, r++);
+        g.add(lbl("Navio:"), 0, r);
+        g.add(cbNavio, 1, r++);
+        g.add(lbl("Origem:"), 0, r);
+        g.add(cbOrigem, 1, r++);
+        g.add(lbl("Destino:"), 0, r);
+        g.add(cbDestino, 1, r++);
+        g.add(lbl("Partida:"), 0, r);
+        g.add(dpPartida, 1, r++);
+        g.add(lbl("Chegada Prev.:"), 0, r);
+        g.add(dpChegada, 1, r++);
         dlg.getDialogPane().setContent(g);
 
         javafx.scene.Node okBtn = dlg.getDialogPane().lookupButton(btnOk);
         okBtn.setDisable(true);
         Runnable validar = () -> okBtn.setDisable(
                 cbNavio.getValue() == null || cbOrigem.getValue() == null || cbDestino.getValue() == null ||
-                dpPartida.getValue() == null || dpChegada.getValue() == null);
+                        dpPartida.getValue() == null || dpChegada.getValue() == null);
         cbNavio.valueProperty().addListener((o, a, n) -> validar.run());
         cbOrigem.valueProperty().addListener((o, a, n) -> validar.run());
         cbDestino.valueProperty().addListener((o, a, n) -> validar.run());
@@ -317,9 +404,11 @@ public class FormDialogs {
         dpChegada.valueProperty().addListener((o, a, n) -> validar.run());
 
         dlg.setResultConverter(bt -> {
-            if (bt != btnOk) return null;
+            if (bt != btnOk)
+                return null;
             Viagem v = new Viagem();
-            if (existente != null) v.setId(existente.getId());
+            if (existente != null)
+                v.setId(existente.getId());
             v.setNavioId(cbNavio.getValue().getId());
             v.setPortoOrigemId(cbOrigem.getValue().getId());
             v.setPortoDestinoId(cbDestino.getValue().getId());
@@ -358,7 +447,8 @@ public class FormDialogs {
         cb.getItems().addAll(values);
         cb.setPromptText(prompt);
         cb.setPrefWidth(220);
-        if (selected != null) cb.setValue(selected);
+        if (selected != null)
+            cb.setValue(selected);
         return cb;
     }
 
@@ -368,8 +458,15 @@ public class FormDialogs {
         cb.setPromptText(prompt);
         cb.setPrefWidth(220);
         cb.setConverter(new StringConverter<>() {
-            @Override public String toString(Porto p)   { return p == null ? "" : p.getNome(); }
-            @Override public Porto fromString(String s) { return null; }
+            @Override
+            public String toString(Porto p) {
+                return p == null ? "" : p.getNome();
+            }
+
+            @Override
+            public Porto fromString(String s) {
+                return null;
+            }
         });
         if (selectedId > 0) {
             portos.stream().filter(p -> p.getId() == selectedId).findFirst().ifPresent(cb::setValue);
@@ -378,14 +475,37 @@ public class FormDialogs {
     }
 
     private static Double parseDouble(String s) {
-        try { return Double.parseDouble(s.trim().replace(",", ".")); } catch (Exception e) { return null; }
+        try {
+            return Double.parseDouble(s.trim().replace(",", "."));
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     private static Integer parseInt(String s) {
-        try { return Integer.parseInt(s.trim()); } catch (Exception e) { return null; }
+        try {
+            return Integer.parseInt(s.trim());
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     private static String fmtDouble(double v) {
         return v == (long) v ? String.valueOf((long) v) : String.valueOf(v);
+    }
+
+    private static final DateTimeFormatter FMT_DATA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+    private static DatePicker datePicker(LocalDate valor) {
+        DatePicker dp = new DatePicker(valor);
+        dp.setPromptText("dd/MM/aaaa");
+        dp.setConverter(new javafx.util.StringConverter<>() {
+            @Override public String toString(LocalDate d)   { return d != null ? FMT_DATA.format(d) : ""; }
+            @Override public LocalDate fromString(String s) {
+                try { return (s == null || s.isBlank()) ? null : LocalDate.parse(s, FMT_DATA); }
+                catch (Exception e) { return null; }
+            }
+        });
+        return dp;
     }
 }

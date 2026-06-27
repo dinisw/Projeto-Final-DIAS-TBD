@@ -11,6 +11,7 @@ import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 public class TripulanteController {
@@ -21,6 +22,7 @@ public class TripulanteController {
     @FXML private TableColumn<Tripulante, String>  colFuncao;
     @FXML private TableColumn<Tripulante, String>  colEstado;
     @FXML private TableColumn<Tripulante, String>  colEmail;
+    @FXML private TableColumn<Tripulante, String>  colNascimento;
     @FXML private Button                           btnEditar;
     @FXML private Button                           btnApagar;
     @FXML private Label                            labelMensagem;
@@ -34,6 +36,10 @@ public class TripulanteController {
         colFuncao.setCellValueFactory(c -> new SimpleStringProperty(str(c.getValue().getFuncao())));
         colEstado.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getEstadoDisponibilidade()));
         colEmail.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getEmail()));
+        colNascimento.setCellValueFactory(c -> {
+            LocalDate d = c.getValue().getDataNascimento();
+            return new SimpleStringProperty(d != null ? d.toString() : "");
+        });
 
         tabela.getSelectionModel().selectedItemProperty().addListener((obs, antigo, novo) -> {
             boolean sel = (novo != null);
